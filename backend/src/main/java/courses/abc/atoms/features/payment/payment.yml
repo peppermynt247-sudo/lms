@@ -1,0 +1,52 @@
+# Payments Module
+id: payments
+scope: custom
+name: Payment Management
+description: Manage user payments for course enrollments and transactions.
+additionalInfo: Additional payment handling and transaction data.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to administer all payment-related configurations.
+    permissions: [feature:Payments:view, feature:Payments:admin]
+  - role: Access
+    description: Allow a user to view payments and basic transaction history.
+    permissions: [feature:Payments:view]
+
+# Installments Module
+---
+id: installments
+scope: custom
+name: Installment Management
+description: Manage course fee installments for enrolled users.
+additionalInfo: Additional installment tracking information.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to administer installment settings and schedules.
+    permissions: [feature:Installments:view, feature:Installments:admin]
+  - role: Access
+    description: Allow a user to view installment schedules and statuses.
+    permissions: [feature:Installments:view]
+
+# Payment Plan Module
+---
+id: paymentplan
+scope: custom
+name: Payment Plan Management
+description: Manage and configure various payment plans for courses.
+additionalInfo: Additional configuration for payment plan structures.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to configure, create, and manage all payment plans.
+    permissions: [feature:PaymentPlan:view, feature:PaymentPlan:admin]
+  - role: Access
+    description: Allow a user to view available payment plans.
+    permissions: [feature:PaymentPlan:view]

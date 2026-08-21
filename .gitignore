@@ -1,0 +1,65 @@
+# === Global Node.js (Frontend) ===
+node_modules/
+.pnp/
+.pnp.js
+.yarn/install-state.gz
+coverage/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+prisma/migrations/
+
+# === Environment files (global safety net — each project also has its own rules) ===
+.env*
+!**/.env.example
+
+# === Spring Boot (Backend) ===
+target/
+build/
+# NOTE: .properties files are safe to commit — they use ${ENV_VAR} references only, no secrets.
+# Real secrets belong in backend/.env which is covered by the .env* rule above.
+*.log
+
+# === Maven Wrapper ===
+!.mvn/wrapper/maven-wrapper.jar
+
+# === IDEs and Editors ===
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+*.md
+!README.md
+!**/README.md
+
+# === Misc ===
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/.next.zip

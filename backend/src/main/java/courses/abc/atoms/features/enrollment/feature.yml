@@ -1,0 +1,15 @@
+id: enrollment
+scope: custom
+name: Enrollment Management 
+description: Manage user enrollments in courses and training programs.
+additionalInfo: Additional Information.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to administer all Attribute Mapping configurations for any Project or Team Areas.
+    permissions: [feature:enrollment:view, feature:enrollment:admin]
+  - role: Access
+    description: Allow a user to create, edit, and delete Attribute Mapping configurations for any Project or Team Areas corresponding to ELM Manager roles.
+    permissions: [feature:enrollment:view]

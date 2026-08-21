@@ -1,0 +1,169 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - 'backend/**'
+      - 'docker-compose.staging.yml'
+      - 'nginx/**'
+      - '.github/workflows/deploy-staging.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: staging-deploy
+  cancel-in-progress: false
+
+env:
+  REGISTRY: registry.digitalocean.com/atoms-lms
+
+jobs:
+
+  test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: atoms_lms_test
+          POSTGRES_USER: atoms_lms_user
+          POSTGRES_PASSWORD: atoms_lms_user
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Run tests
+        run: cd backend && mvn verify -q
+
+  build:
+    name: Build Backend Image
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DOCR
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/atoms-backend:staging
+            ${{ env.REGISTRY }}/atoms-backend:staging-${{ github.sha }}
+          cache-from: type=gha,scope=backend-staging
+          cache-to: type=gha,mode=max,scope=backend-staging
+
+  deploy:
+    name: Deploy to Staging
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy deployment files to Staging Droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_DROPLET_IP }}
+          username: deploy
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: "docker-compose.staging.yml,nginx/"
+          target: "/app"
+
+      - name: Deploy to Staging Droplet
+        uses: appleboy/ssh-action@v0.1.10
+        env:
+          DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        with:
+          host: ${{ secrets.STAGING_DROPLET_IP }}
+          username: deploy
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: DO_TOKEN
+          script: |
+            set -euo pipefail
+            cd /app
+
+            doctl auth init --access-token "$DO_TOKEN"
+            doctl registry login --expiry-seconds 600
+
+            PREV_BACKEND=$(docker inspect atoms-backend-staging --format '{{.Image}}' 2>/dev/null || true)
+            echo "Previous backend image: ${PREV_BACKEND:-none}"
+
+            echo "=== Pulling updated images ==="
+            docker compose -f docker-compose.staging.yml pull
+
+            echo "=== Starting services ==="
+            if ! docker compose -f docker-compose.staging.yml up -d --remove-orphans; then
+              echo "❌ docker compose up failed — dumping backend logs"
+              docker compose -f docker-compose.staging.yml logs backend --tail=100
+              docker inspect atoms-backend-staging --format='Exit code: {{.State.ExitCode}} | Error: {{.State.Error}}' 2>/dev/null || true
+              exit 1
+            fi
+
+            echo "=== Waiting for backend health check (max 210s) ==="
+            HEALTHY=false
+            for i in $(seq 1 21); do
+              sleep 10
+              HEALTH_STATUS=$(docker inspect atoms-backend-staging --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+              echo "  Attempt $i/21 — docker health status: ${HEALTH_STATUS}"
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
+                echo "✅ Backend healthy after $((i * 10))s"
+                HEALTHY=true
+                break
+              fi
+              if [ "$HEALTH_STATUS" = "unhealthy" ]; then
+                echo "❌ Container marked unhealthy — stopping wait early"
+                break
+              fi
+            done
+
+            if [ "$HEALTHY" != "true" ]; then
+              echo "❌ Backend health check failed — rolling back"
+              echo "=== Actuator health response ==="
+              docker exec atoms-backend-staging wget -q -O - http://localhost:9080/actuator/health 2>/dev/null || true
+              echo "=== Backend ERROR logs ==="
+              docker logs atoms-backend-staging 2>&1 | grep -E "ERROR|Exception|Caused by|Failed to" | tail -30
+
+              if [ -n "$PREV_BACKEND" ]; then
+                docker compose -f docker-compose.staging.yml down
+                docker tag "$PREV_BACKEND" registry.digitalocean.com/atoms-lms/atoms-backend:staging
+                docker compose -f docker-compose.staging.yml up -d || echo "⚠️  Rollback compose up also failed — manual intervention required."
+                echo "⚠️  Rolled back to previous image. Investigate and redeploy."
+              else
+                echo "⚠️  No previous image to roll back to. Manual intervention required."
+              fi
+              exit 1
+            fi
+
+            docker compose -f docker-compose.staging.yml ps
+            echo "✅ Staging deployment successful — SHA: ${{ github.sha }}"
+
+            docker image prune -af --filter "until=24h"

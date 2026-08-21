@@ -1,0 +1,101 @@
+services:
+
+  backend:
+    image: registry.digitalocean.com/atoms-lms/atoms-backend:latest
+    container_name: atoms-backend
+    restart: always
+    env_file:
+      - .env.prod
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - backend-logs:/var/log/atoms
+      - uploads:/opt/uploads
+      - ./certs/do-ca.crt:/app/certs/do-ca.crt:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --tries=1 --spider http://localhost:9080/actuator/health 2>&1; ret=$$?; [ $$ret -eq 0 ] || [ $$ret -eq 8 ]"]
+      interval: 15s
+      timeout: 10s
+      start_period: 150s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+        reservations:
+          memory: 1G
+    stop_grace_period: 35s
+
+  admin-frontend:
+    image: registry.digitalocean.com/atoms-lms/atoms-admin-frontend:latest
+    container_name: atoms-admin-frontend
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  student-frontend:
+    image: registry.digitalocean.com/atoms-lms/atoms-student-frontend:latest
+    container_name: atoms-student-frontend
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: atoms-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl-params.conf:/etc/nginx/ssl-params.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      backend:
+        condition: service_started
+      admin-frontend:
+        condition: service_started
+      student-frontend:
+        condition: service_started
+    networks:
+      - app-network
+
+  certbot:
+    image: certbot/certbot:v2.11.0
+    container_name: atoms-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done'"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  backend-logs:
+  uploads:

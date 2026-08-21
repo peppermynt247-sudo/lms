@@ -1,0 +1,15 @@
+id: course
+scope: custom
+name: Course Management
+description: Manage courses in the learning management system.
+additionalInfo: Additional Information.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to administer all courses.
+    permissions: [feature:course:view, feature:course:admin]
+  - role: Access
+    description: Allow a user to view courses.
+    permissions: [feature:course:view]

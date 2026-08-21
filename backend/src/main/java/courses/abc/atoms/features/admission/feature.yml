@@ -1,0 +1,15 @@
+id: admission
+scope: custom
+name: admission Management
+description: manage certificates.
+additionalInfo: Additional Information.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to administer all admissions.
+    permissions: [feature:admissions:view, feature:admissions:admin]
+  - role: Access
+    description: Allow a user to view admission.
+    permissions: [feature:admissions:view]

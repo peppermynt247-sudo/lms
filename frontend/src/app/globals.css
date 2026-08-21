@@ -1,0 +1,291 @@
+/* ─── Tailwind directives ─────────────────────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties ──────────────────────────────────────────────── */
+:root {
+  --blackColor: #000000;
+  --whiteColor: #ffffff;
+  --primaryColor: #ff5b00;
+  --secondaryColor: #f2277e;
+  --blue: #0c63e4;
+  --blue2: rgba(13, 110, 253, 0.25);
+  --blueLight: #bdd4fa;
+  --blueLight1: #e7f1ff;
+  --borderColor: #eeeeee;
+  --borderColor2: #dddddd;
+  --lightGrey4: #a2a9b6;
+}
+
+/* ─── Base Resets ─────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+a {
+  display: inline-block;
+  transition: color 0.2s, opacity 0.2s;
+}
+
+a,
+button {
+  transition: 0.2s;
+}
+
+/* ─── Tooltip ─────────────────────────────────────────────────────────────── */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after,
+.tooltip::before {
+  position: absolute;
+  z-index: 50;
+  left: 50%;
+  color: var(--whiteColor);
+  transform: translateX(-50%);
+  visibility: hidden;
+  opacity: 0;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.tooltip::after {
+  content: attr(data-tip);
+  background-color: var(--blackColor);
+  padding: 5px 10px;
+  border-radius: 5px;
+  top: -40px;
+}
+
+.tooltip::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border: 10px solid transparent;
+  border-top-color: var(--blackColor);
+  top: -13px;
+}
+
+.tooltip:hover::after,
+.tooltip:hover::before {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ─── Accordion (curriculum / fee) ───────────────────────────────────────── */
+.fees .accordion-controller,
+.curriculum .accordion-controller {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+.fees .active .accordion-controller,
+.curriculum .active .accordion-controller {
+  background-color: var(--blueLight1);
+}
+
+.fees .active .accordion-controller svg,
+.curriculum .active .accordion-controller svg {
+  transform: rotate(-180deg);
+  fill: var(--blue);
+}
+
+.create-course .active .accordion-controller {
+  background-color: transparent;
+  border-bottom: 1px solid var(--borderColor2);
+}
+
+.create-course .active .accordion-controller:focus,
+.create-course .accordion-controller:focus {
+  box-shadow: 0 0 0 0.25rem var(--blue2);
+}
+
+/* ─── Toast — Vercel/Notion style ────────────────────────────────────────── */
+
+.Toastify__toast-container--top-center {
+  top: 1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  padding: 0;
+}
+
+/* Base card */
+.atoms-toast.Toastify__toast {
+  min-height: 50px;
+  padding: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FFF5EE 0%, #FFFAF6 100%);
+  border: 1px solid rgba(255, 91, 0, 0.15);
+  box-shadow:
+    0 0 0 1px rgba(255, 91, 0, 0.06),
+    0 8px 24px rgba(255, 91, 0, 0.10),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  font-family: var(--font-poppins), system-ui, sans-serif;
+  margin-bottom: 8px;
+  cursor: default;
+}
+
+/* Body */
+.atoms-toast__body.Toastify__toast-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 24px 28px 48px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a0a00;
+  line-height: 1.45;
+}
+
+/* Icon */
+.atoms-toast__body .Toastify__toast-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.atoms-toast.Toastify__toast--success .Toastify__toast-icon svg { color: #4ade80; }
+.atoms-toast.Toastify__toast--error   .Toastify__toast-icon svg { color: #f87171; }
+.atoms-toast.Toastify__toast--warning .Toastify__toast-icon svg { color: #fbbf24; }
+.atoms-toast.Toastify__toast--info    .Toastify__toast-icon svg { color: #60a5fa; }
+
+/* Close button */
+.atoms-toast.Toastify__toast .Toastify__close-button {
+  align-self: center;
+  flex-shrink: 0;
+  padding: 0 12px 0 0;
+  color: rgba(26, 10, 0, 0.35);
+  opacity: 1;
+  transition: color 0.15s;
+}
+.atoms-toast.Toastify__toast .Toastify__close-button:hover { color: rgba(26, 10, 0, 0.8); }
+.atoms-toast.Toastify__toast .Toastify__close-button > svg { width: 13px; height: 13px; }
+
+/* Animations — drop in, fade out */
+@keyframes atomsIn {
+  from { transform: translateY(-10px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0)     scale(1);    opacity: 1; }
+}
+@keyframes atomsOut {
+  from { transform: translateY(0); opacity: 1; }
+  to   { transform: translateY(4px); opacity: 0; }
+}
+
+.atoms-toast.Toastify__toast--animate-enter { animation: atomsIn  0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.atoms-toast.Toastify__toast--animate-exit  { animation: atomsOut 0.30s ease-in-out both; }
+
+/* ─── Sidebar Scrollbar ───────────────────────────────────────────────────── */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  min-height: 20px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-button {
+  display: block;
+  height: 8px;
+  background: transparent;
+}
+
+/* ─── Skeleton shimmer ────────────────────────────────────────────────────── */
+@keyframes sk-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+
+/* Base skeleton block — add width/height/rounded via Tailwind */
+.sk {
+  position: relative;
+  overflow: hidden;
+  background-color: #eef0f4;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.65) 50%,
+    transparent 100%
+  );
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+}
+
+/* ─── Utilities ───────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Hide number input spinners */
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .no-spinner {
+    -moz-appearance: textfield;
+  }
+
+  /* Thin scrollbar for sidebar / overflow panels */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 999px;
+  }
+}

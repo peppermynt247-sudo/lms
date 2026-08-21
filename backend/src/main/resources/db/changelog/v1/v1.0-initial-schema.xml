@@ -1,0 +1,2759 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">    
+    
+    <!-- Users -->
+    <changeSet id="1" author="auto">
+        <createTable tableName="users">
+            <column name="user_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="last_login_at" type="TIMESTAMP"/>
+            <column name="login_attempts" type="INT"/>
+            <column name="account_locked_until" type="TIMESTAMP"/>
+            <column name="user_timezone" type="VARCHAR(255)"/>
+            <column name="deletion_requested_at" type="TIMESTAMP"/>
+            <column name="is_active" type="BOOLEAN"/>
+            <column name="status" type="VARCHAR(255)"/>
+        </createTable>
+        <createIndex tableName="users" indexName="idx_users_email">
+            <column name="email"/>
+        </createIndex>
+        <createIndex tableName="users" indexName="idx_users_is_active">
+            <column name="is_active"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Roles -->
+    <changeSet id="2" author="auto">
+        <createTable tableName="roles">
+            <column name="role_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="role_name" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- User_Roles -->
+    <changeSet id="3" author="auto">
+        <createTable tableName="user_roles">
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="user_roles" columnNames="user_id,role_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_roles_user_id" baseTableName="user_roles" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_roles_role_id" baseTableName="user_roles" baseColumnNames="role_id"
+            referencedTableName="roles" referencedColumnNames="role_id"/>
+    </changeSet>    
+    
+    <!-- Profiles -->
+    <changeSet id="4" author="auto">
+        <createTable tableName="profiles">
+            <column name="profile_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="abc_id" type="VARCHAR(50)"/>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="gender" type="VARCHAR(20)"/>
+            <column name="profile_image" type="BYTEA"/>
+            <column name="bio" type="TEXT"/>
+            <column name="dob" type="DATE"/>
+            <column name="phone_number" type="VARCHAR(20)"/>
+            <column name="whatsapp_number" type="VARCHAR(20)"/>
+            <column name="qualification" type="VARCHAR(100)"/>
+            <column name="aadhar" type="VARCHAR(100)"/>
+            <column name="pan" type="VARCHAR(100)"/>
+            <column name="address" type="VARCHAR(255)"/>
+            <column name="city" type="VARCHAR(100)"/>
+            <column name="state" type="VARCHAR(100)"/>
+            <column name="country" type="VARCHAR(100)"/>
+            <column name="pincode" type="VARCHAR(10)"/>
+            <column name="parent_name" type="VARCHAR(255)"/>
+            <column name="parent_contact" type="VARCHAR(20)"/>
+            <column name="parent_email" type="VARCHAR(255)"/>
+            <column name="social_links" type="TEXT"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="resume" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_profiles_user_id" baseTableName="profiles" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <createIndex tableName="profiles" indexName="idx_profiles_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Auth_Tokens -->
+    <changeSet id="5" author="auto">
+        <createTable tableName="auth_tokens">
+            <column name="token_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refresh_token" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_auth_tokens_user_id" baseTableName="auth_tokens" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Course_Bundles -->
+    <changeSet id="6" author="auto">
+        <createTable tableName="course_bundles">
+            <column name="bundle_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="thumbnail_image" type="BYTEA"/>
+            <column name="price" type="DECIMAL"/>
+            <column name="validity_in_days" type="INT"/>
+            <column name="discount_percentage" type="DECIMAL"/>
+            <column name="is_featured" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="created_by" type="INT"/>
+            <column name="is_published" type="BOOLEAN"/>
+            <column name="enrollment_limit" type="INT"/>
+            <column name="enrollment_start_date" type="TIMESTAMP"/>
+            <column name="enrollment_end_date" type="TIMESTAMP"/>
+            <column name="is_archived" type="BOOLEAN" defaultValueBoolean="false"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_course_bundles_created_by" baseTableName="course_bundles" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Courses -->
+    <changeSet id="7" author="auto">
+        <createTable tableName="courses">
+            <column name="course_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_courses"/>
+            </column>
+            <column name="instructor_id" type="INT"/>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pretty_name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="subtitle" type="VARCHAR(255)"/>
+            <column name="description" type="TEXT"/>
+            <column name="overview" type="TEXT"/>
+            <column name="thumbnail_image" type="BYTEA"/>
+            <column name="version" type="VARCHAR(255)"/>
+            <column name="difficulty_level" type="VARCHAR(255)"/>
+            <column name="estimated_hours" type="INT"/>
+            <column name="completion_criteria" type="JSON"/>
+            <column name="prerequisites" type="JSON"/>
+            <column name="syllabus_url" type="VARCHAR(255)"/>
+            <column name="featured_rank" type="INT"/>
+            <column name="price" type="DECIMAL"/>
+            <column name="validity_in_days" type="INT"/>
+            <column name="enrollment_limit" type="INT"/>
+            <column name="enrollment_start_date" type="TIMESTAMP"/>
+            <column name="enrollment_end_date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="is_published" type="BOOLEAN"/>
+            <column name="is_featured" type="BOOLEAN"/>
+            <column name="is_archived" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="default_curriculum_id" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint
+            constraintName="fk_courses_instructor_id"
+            baseTableName="courses" baseColumnNames="instructor_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Bundle_Courses -->
+    <changeSet id="8" author="auto">
+        <createTable tableName="bundle_courses">
+            <column name="bundle_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sequence_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="bundle_courses" columnNames="bundle_id,course_id"/>
+        <addForeignKeyConstraint constraintName="fk_bundle_courses_bundle_id" baseTableName="bundle_courses" baseColumnNames="bundle_id"
+            referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+        <addForeignKeyConstraint constraintName="fk_bundle_courses_course_id" baseTableName="bundle_courses" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+    </changeSet>
+
+
+    <!-- Course_Versions -->
+    <changeSet id="9" author="auto">
+        <createTable tableName="course_versions">
+            <column name="version_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version_number" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changes_description" type="TEXT"/>
+            <column name="released_at" type="TIMESTAMP"/>
+            <column name="created_by" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_course_versions_course_id" baseTableName="course_versions" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_course_versions_created_by" baseTableName="course_versions" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Categories -->
+    <changeSet id="10" author="auto">
+        <createTable tableName="categories">
+            <column name="category_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="parent_category_id" type="INT"/>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="icon_url" type="VARCHAR(255)"/>
+            <column name="is_active" type="BOOLEAN"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_categories_parent_category_id" baseTableName="categories" baseColumnNames="parent_category_id"
+            referencedTableName="categories" referencedColumnNames="category_id"/>
+    </changeSet>
+
+    <!-- Course_Categories -->
+    <changeSet id="11" author="auto">
+        <createTable tableName="course_categories">
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="course_categories" columnNames="course_id,category_id"/>
+        <addForeignKeyConstraint constraintName="fk_course_categories_course_id" baseTableName="course_categories" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_course_categories_category_id" baseTableName="course_categories" baseColumnNames="category_id"
+            referencedTableName="categories" referencedColumnNames="category_id"/>
+    </changeSet>
+
+    <!-- Curriculums -->
+    <changeSet id="12" author="auto">
+        <createTable tableName="curriculum">
+            <column name="curriculum_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_curriculum"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="version" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="is_active" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="add-fk-courses-to-default-curriculum" author="your-name">
+        <addForeignKeyConstraint
+            constraintName="fk_courses_default_curriculum"
+            baseTableName="courses"
+            baseColumnNames="default_curriculum_id"
+            referencedTableName="curriculum"
+            referencedColumnNames="curriculum_id"/>
+    </changeSet>
+
+    <!-- Curriculum_Sections -->
+    <changeSet id="13" author="auto">
+        <createTable tableName="curriculum_sections">
+            <column name="section_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="curriculum_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="section_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_published" type="BOOLEAN"/>
+            <column name="release_date" type="TIMESTAMP"/>
+            <column name="drip_days_after_enrollment" type="INT"/>
+            <column name="drip_specific_date" type="TIMESTAMP"/>
+            <column name="prerequisite_section_id" type="INT"/>
+            <column name="prerequisite_condition" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_curriculum_sections_curriculum_id" baseTableName="curriculum_sections" baseColumnNames="curriculum_id"
+            referencedTableName="curriculum" referencedColumnNames="curriculum_id"/>
+        <addForeignKeyConstraint constraintName="fk_curriculum_sections_prerequisite_section_id" baseTableName="curriculum_sections" baseColumnNames="prerequisite_section_id"
+            referencedTableName="curriculum_sections" referencedColumnNames="section_id"/>
+    </changeSet>
+
+    <!-- Content_Items -->
+    <changeSet id="14" author="auto">
+        <createTable tableName="content_items">
+            <column name="item_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="section_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_reference_id" type="INT"/>
+            <column name="item_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_published" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="is_required" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="estimated_minutes" type="INT"/>
+            <column name="xp_points" type="INT"/>
+            <column name="release_date" type="TIMESTAMP"/>
+            <column name="prerequisite_item_id" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint 
+            baseTableName="content_items"
+            baseColumnNames="section_id"
+            referencedTableName="curriculum_sections"
+            referencedColumnNames="section_id"
+            constraintName="fk_content_items_section_id"/>
+
+        <addForeignKeyConstraint 
+            baseTableName="content_items"
+            baseColumnNames="prerequisite_item_id"
+            referencedTableName="content_items"
+            referencedColumnNames="item_id"
+            constraintName="fk_content_items_prerequisite_item_id"/>
+
+        <!-- Enum Check Constraint (optional)
+        <addCheckConstraint 
+            tableName="content_items"
+            constraintName="chk_content_type_valid"
+            checkCondition="content_type IN ('VIDEO', 'EXERCISE')"/> -->
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_content_items_section_id" tableName="content_items">
+            <column name="section_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_content_items_order" tableName="content_items">
+            <column name="item_order"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Videos -->
+    <changeSet id="15" author="auto">
+        <createTable tableName="videos">
+            <column name="video_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="vdo_cipher_id" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="upload_status" type="VARCHAR(50)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="video_url" type="VARCHAR(255)"/>
+            <column name="thumbnail_url" type="VARCHAR(255)"/>
+            <column name="duration_seconds" type="INT"/>
+            <column name="transcript" type="TEXT"/>
+            <column name="watermark_text" type="VARCHAR(255)"/>
+            <column name="allow_download" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Video_Chapters -->
+    <changeSet id="16" author="auto">
+        <createTable tableName="video_chapters">
+            <column name="chapter_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="video_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp_seconds" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_video_chapters_video_id" baseTableName="video_chapters" baseColumnNames="video_id"
+            referencedTableName="videos" referencedColumnNames="video_id"/>
+    </changeSet>
+
+    <!-- Ebooks -->
+    <changeSet id="17" author="auto">
+        <createTable tableName="ebooks">
+            <column name="ebook_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="file_url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cover_image_url" type="VARCHAR(255)"/>
+            <column name="page_count" type="INT"/>
+            <column name="file_size_kb" type="INT"/>
+            <column name="allow_download" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Resources -->
+    <changeSet id="18" author="auto">
+        <createTable tableName="resources">
+            <column name="resource_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="content_item_id" type="INT"/>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="resource_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_size_kb" type="INT"/>
+            <column name="is_downloadable" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_resources_content_item_id" baseTableName="resources" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+    </changeSet>
+
+    <!-- Quizzes -->
+    <changeSet id="19" author="auto">
+        <createTable tableName="quizzes">
+            <column name="quiz_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="instructions" type="TEXT"/>
+            <column name="time_limit_minutes" type="INT"/>
+            <column name="passing_percentage" type="INT"/>
+            <column name="max_attempts" type="INT"/>
+            <column name="randomize_questions" type="BOOLEAN"/>
+            <column name="show_correct_answers" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    
+    <!-- Question Bank -->
+    <changeSet id="82" author="auto">
+        <createTable tableName="questionbank">
+            <column name="question_bank_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="questions_type" type="VARCHAR(50)"/> 
+            <column name="difficulty_level" type="VARCHAR(50)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <createIndex tableName="questionbank" indexName="idx_questionbank_name">
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Questions -->
+    <changeSet id="20" author="auto">
+        <createTable tableName="questions">
+            <column name="question_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="question_bank_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="explanation" type="TEXT"/>
+            <column name="points" type="INT"/>
+            <column name="difficulty_level" type="VARCHAR(255)"/>
+            <column name="question_order" type="INT"/>
+            <column name="media_url" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_questions_question_bank_id" baseTableName="questions" baseColumnNames="question_bank_id"
+            referencedTableName="questionbank" referencedColumnNames="question_bank_id"/>
+    </changeSet>
+
+
+    <!-- Question_Options -->
+    <changeSet id="21" author="auto">
+        <createTable tableName="question_options">
+            <column name="option_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="question_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="option_text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_correct" type="BOOLEAN"/>
+            <column name="explanation" type="TEXT"/>
+            <column name="option_order" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_question_options_question_id" baseTableName="question_options" baseColumnNames="question_id"
+            referencedTableName="questions" referencedColumnNames="question_id"/>
+    </changeSet>
+
+    <!-- Coding Exercises -->
+    <changeSet id="22" author="auto">
+        <createTable tableName="coding_exercises">
+            <column name="coding_exercise_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="coding_question" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="instructions" type="TEXT"/>
+            <column name="difficulty_level" type="VARCHAR(50)"/>
+            <column name="starter_code" type="TEXT"/>
+            <column name="solution_code" type="TEXT"/>
+            <column name="time_limit_minutes" type="INT"/>
+            <column name="max_attempts" type="INT"/>
+            <column name="supported_languages" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <createIndex tableName="coding_exercises" indexName="idx_coding_exercises_title">
+            <column name="title"/>
+        </createIndex>
+        <createIndex tableName="coding_exercises" indexName="idx_coding_exercises_difficulty">
+            <column name="difficulty_level"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Test_Cases -->
+    <changeSet id="23" author="auto">
+        <createTable tableName="test_cases">
+            <column name="test_case_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="coding_exercise_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="input" type="TEXT"/>
+            <column name="expected_output" type="TEXT"/>
+            <column name="explanation" type="TEXT"/>
+            <column name="is_hidden" type="BOOLEAN"/>
+            <column name="test_order" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_test_cases_coding_exercise_id" baseTableName="test_cases" baseColumnNames="coding_exercise_id"
+            referencedTableName="coding_exercises" referencedColumnNames="coding_exercise_id"/>
+    </changeSet>
+
+    <!-- Assignments -->
+    <changeSet id="24" author="auto">
+        <createTable tableName="assignments">
+            <column name="assignment_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="instructions" type="TEXT"/>
+            <column name="rubric" type="TEXT"/>
+            <column name="due_days_after_start" type="INT"/>
+            <column name="specific_due_date" type="TIMESTAMP"/>
+            <column name="max_file_size_kb" type="INT"/>
+            <column name="allowed_file_types" type="VARCHAR(255)"/>
+            <column name="max_score" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Payment_Plans -->
+    <changeSet id="47" author="auto">
+        <createTable tableName="payment_plans">
+            <column name="plan_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="interval" type="INT"/>
+            <column name="billing_cycle" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trial_days" type="INT"/>
+            <column name="is_active" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Batches -->
+    <changeSet id="80" author="auto">
+        <createTable tableName="batches">
+            <column name="batch_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="course_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="bundle_id" type="INT"/>
+            <column name="batch_manager_id" type="INT"/>
+            <column name="additional_batch_manager_id" type="INT"/>
+            <column name="accommodation" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="true"/>
+            </column>
+            <column name="batch_name" type="VARCHAR(255)">
+                    <constraints nullable="false"/>
+            </column>
+            <column name="is_default" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="DATE"/>
+            <column name="end_date" type="DATE"/>
+            <column name="status" type="VARCHAR(50)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_batches_course_id"
+                                    baseTableName="batches" baseColumnNames="course_id"
+                                    referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_batches_bundle_id"
+                                    baseTableName="batches" baseColumnNames="bundle_id"
+                                    referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+        <addForeignKeyConstraint constraintName="fk_batches_batch_manager_id"
+                                    baseTableName="batches" baseColumnNames="batch_manager_id"
+                                    referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_batches_additional_manager_id"
+                                    baseTableName="batches" baseColumnNames="additional_batch_manager_id"
+                                    referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Batch_users -->
+    <changeSet id="81" author="auto">
+        <createTable tableName="batch_users">
+          <column name="id" type="BIGSERIAL" autoIncrement="true">
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+            <column name="batch_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="joined_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_batch_users_batch_id" baseTableName="batch_users" baseColumnNames="batch_id"
+            referencedTableName="batches" referencedColumnNames="batch_id"/>
+        <addForeignKeyConstraint constraintName="fk_batch_users_user_id" baseTableName="batch_users" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+            
+    </changeSet>
+
+    <!-- User_Course_Enrollments -->
+    <changeSet id="25" author="auto">
+        <createTable tableName="user_course_enrollments">
+            <column name="enrollment_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+                <!-- course_id is nullable in this schema; explicit constraints are intentionally omitted. -->
+            </column>
+            <column name="bundle_id" type="INT"/>
+            <column name="batch_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="payment_status" type="VARCHAR(255)"/>
+            <column name="plan_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="access_status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="enrolled_at" type="TIMESTAMP"/>
+            <column name="expires_at" type="TIMESTAMP"/>
+            <column name="progress_percentage" type="DECIMAL"/>
+            <column name="completion_status" type="VARCHAR(255)"/>
+            <column name="completed_at" type="TIMESTAMP"/>
+            <column name="last_activity_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_course_enrollments_user_id"
+            baseTableName="user_course_enrollments" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_course_enrollments_course_id"
+            baseTableName="user_course_enrollments" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_course_enrollments_bundle_id"
+            baseTableName="user_course_enrollments" baseColumnNames="bundle_id"
+            referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_course_enrollments_plan_id"
+            baseTableName="user_course_enrollments" baseColumnNames="plan_id"
+            referencedTableName="payment_plans" referencedColumnNames="plan_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_course_enrollments_batch_id"
+            baseTableName="user_course_enrollments" baseColumnNames="batch_id"
+            referencedTableName="batches" referencedColumnNames="batch_id"/>
+    </changeSet>
+
+    <!-- User_Content_Progress -->
+    <changeSet id="26" author="auto">
+        <createTable tableName="user_content_progress">
+            <column name="progress_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="progress_percentage" type="DECIMAL"/>
+            <column name="time_spent_seconds" type="INT"/>
+            <column name="first_accessed_at" type="TIMESTAMP"/>
+            <column name="last_accessed_at" type="TIMESTAMP"/>
+            <column name="completed_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_content_progress_user_id" baseTableName="user_content_progress" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_content_progress_content_item_id" baseTableName="user_content_progress" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+    </changeSet>
+
+    <!-- Quiz_Attempts -->
+    <changeSet id="27" author="auto">
+        <createTable tableName="quiz_attempts">
+            <column name="attempt_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quiz_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="DECIMAL"/>
+            <column name="max_score" type="INT"/>
+            <column name="percentage" type="DECIMAL"/>
+            <column name="passed" type="BOOLEAN"/>
+            <column name="started_at" type="TIMESTAMP"/>
+            <column name="completed_at" type="TIMESTAMP"/>
+            <column name="time_spent_seconds" type="INT"/>
+            <column name="attempt_number" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_quiz_attempts_user_id" baseTableName="quiz_attempts" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_quiz_attempts_quiz_id" baseTableName="quiz_attempts" baseColumnNames="quiz_id"
+            referencedTableName="quizzes" referencedColumnNames="quiz_id"/>
+        <addForeignKeyConstraint constraintName="fk_quiz_attempts_content_item_id" baseTableName="quiz_attempts" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+    </changeSet>
+
+    <!-- Exercise -->
+    <changeSet id="83" author="auto">
+        <createTable tableName="exercise">
+            <column name="exercise_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="question_bank_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="instructions" type="TEXT"/>
+            <column name="exercise_type" type="VARCHAR(50)"/>
+            <column name="time_limit_minutes" type="INT"/>
+            <column name="passing_percentage" type="INT"/>
+            <column name="max_attempts" type="INT"/>
+            <column name="randomize_questions" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_exercise_question_bank_id" baseTableName="exercise" baseColumnNames="question_bank_id"
+            referencedTableName="questionbank" referencedColumnNames="question_bank_id"/>
+        <createIndex tableName="exercise" indexName="idx_exercise_title">
+            <column name="title"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Exercise Attempts -->
+    <changeSet id="84" author="auto">
+        <createTable tableName="exercise_attempts">
+            <column name="attempt_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="exercise_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="DECIMAL(5,2)"/>
+            <column name="max_score" type="INT"/>
+            <column name="percentage" type="DECIMAL(5,2)"/>
+            <column name="passed" type="BOOLEAN"/>
+            <column name="started_at" type="TIMESTAMP"/>
+            <column name="completed_at" type="TIMESTAMP"/>
+            <column name="time_spent_seconds" type="INT"/>
+            <column name="attempt_number" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_exercise_attempts_user_id" baseTableName="exercise_attempts" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_exercise_attempts_exercise_id" baseTableName="exercise_attempts" baseColumnNames="exercise_id"
+            referencedTableName="exercise" referencedColumnNames="exercise_id"/>
+        <addForeignKeyConstraint constraintName="fk_exercise_attempts_content_item_id" baseTableName="exercise_attempts" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+    </changeSet>
+
+    <!-- User_Question_Responses -->
+    <changeSet id="28" author="auto">
+        <createTable tableName="user_question_responses">
+            <column name="response_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="attempt_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="selected_option_id" type="INT"/>
+            <column name="text_response" type="TEXT"/>
+            <column name="is_correct" type="BOOLEAN"/>
+            <column name="points_awarded" type="DECIMAL"/>
+            <column name="response_time_seconds" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_question_responses_attempt_id" baseTableName="user_question_responses" baseColumnNames="attempt_id"
+            referencedTableName="exercise_attempts" referencedColumnNames="attempt_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_question_responses_question_id" baseTableName="user_question_responses" baseColumnNames="question_id"
+            referencedTableName="questions" referencedColumnNames="question_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_question_responses_selected_option_id" baseTableName="user_question_responses" baseColumnNames="selected_option_id"
+            referencedTableName="question_options" referencedColumnNames="option_id"/>
+    </changeSet>
+
+    <!-- Code_Submissions -->
+    <changeSet id="29" author="auto">
+        <createTable tableName="code_submissions">
+            <column name="submission_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="coding_exercise_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="language" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_test_cases" type="INT"/>
+            <column name="passed_test_cases" type="INT"/>
+            <column name="failed_test_cases" type="INT"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="score" type="DECIMAL"/>
+            <column name="max_score" type="INT"/>
+            <column name="execution_time_ms" type="INT"/>
+            <column name="memory_used_kb" type="INT"/>
+            <column name="submitted_at" type="TIMESTAMP"/>
+            <column name="attempt_number" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_code_submissions_user_id" baseTableName="code_submissions" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_code_submissions_exercise_id" baseTableName="code_submissions" baseColumnNames="coding_exercise_id"
+            referencedTableName="coding_exercises" referencedColumnNames="coding_exercise_id"/>
+        <addForeignKeyConstraint constraintName="fk_code_submissions_content_item_id" baseTableName="code_submissions" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+    </changeSet>
+
+    <!-- Submission_Results -->
+    <changeSet id="30" author="auto">
+        <createTable tableName="submission_results">
+            <column name="result_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="submission_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="test_case_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="output" type="TEXT"/>
+            <column name="expected_output" type="TEXT"/>
+            <column name="execution_time_ms" type="INT"/>
+            <column name="memory_used_kb" type="INT"/>
+            <column name="error_message" type="TEXT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_submission_results_submission_id" baseTableName="submission_results" baseColumnNames="submission_id"
+            referencedTableName="code_submissions" referencedColumnNames="submission_id"/>
+        <addForeignKeyConstraint constraintName="fk_submission_results_test_case_id" baseTableName="submission_results" baseColumnNames="test_case_id"
+            referencedTableName="test_cases" referencedColumnNames="test_case_id"/>
+    </changeSet>
+
+    <!-- Assignment_Submissions -->
+    <changeSet id="31" author="auto">
+        <createTable tableName="assignment_submissions">
+            <column name="submission_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assignment_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submission_url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notes" type="TEXT"/>
+            <column name="submitted_at" type="TIMESTAMP"/>
+            <column name="attempt_number" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_assignment_submissions_user_id" baseTableName="assignment_submissions" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_assignment_submissions_assignment_id" baseTableName="assignment_submissions" baseColumnNames="assignment_id"
+            referencedTableName="assignments" referencedColumnNames="assignment_id"/>
+        <addForeignKeyConstraint constraintName="fk_assignment_submissions_content_item_id" baseTableName="assignment_submissions" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+    </changeSet>
+
+    <!-- Assignment_Grades -->
+    <changeSet id="32" author="auto">
+        <createTable tableName="assignment_grades">
+            <column name="grade_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="submission_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="grader_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="DECIMAL"/>
+            <column name="max_score" type="INT"/>
+            <column name="feedback" type="TEXT"/>
+            <column name="graded_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_assignment_grades_submission_id" baseTableName="assignment_grades" baseColumnNames="submission_id"
+            referencedTableName="assignment_submissions" referencedColumnNames="submission_id"/>
+        <addForeignKeyConstraint constraintName="fk_assignment_grades_grader_id" baseTableName="assignment_grades" baseColumnNames="grader_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Certificates -->
+    <changeSet id="33" author="auto">
+        <createTable tableName="certificates">
+            <column name="template_id" type="INT" autoIncrement="true">
+            <constraints primaryKey="true"/>
+        </column>
+        <column name="name" type="VARCHAR(255)">
+            <constraints nullable="false"/>
+        </column>
+        <column name="description" type="TEXT"/>
+        <column name="template_url" type="VARCHAR(255)"/>
+        <column name="serial_prefix" type="VARCHAR(255)">
+            <constraints nullable="false" unique="true"/>
+        </column>
+        <column name="created_at" type="TIMESTAMP"/>
+        <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Issued Certificates Table -->
+    <changeSet id="87" author="auto">
+        <createTable tableName="certificate_issued">
+            <column name="certificate_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="template_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_name" type="VARCHAR(255)"/>
+            <column name="college_name" type="VARCHAR(255)"/>
+            <column name="certificate_url" type="VARCHAR(255)"/>
+            <column name="is_published" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="serial_number" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="issued_at" type="TIMESTAMP"/>
+            <column name="start_date" type="TIMESTAMP"/>
+            <column name="end_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint constraintName="fk_issued_template_id"
+            baseTableName="certificate_issued" baseColumnNames="template_id"
+            referencedTableName="certificates" referencedColumnNames="template_id"/>
+
+        <addForeignKeyConstraint constraintName="fk_issued_user_id"
+            baseTableName="certificate_issued" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Achievements -->
+    <changeSet id="34" author="auto">
+        <createTable tableName="achievements">
+            <column name="achievement_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="badge_url" type="VARCHAR(255)"/>
+            <column name="xp_points" type="INT"/>
+            <column name="achievement_type" type="VARCHAR(255)"/>
+            <column name="conditions" type="JSON"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="is_active" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+
+    <!-- User_Achievements -->
+    <changeSet id="35" author="auto">
+        <createTable tableName="user_achievements">
+            <column name="user_achievement_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="achievement_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="awarded_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_achievements_user_id" baseTableName="user_achievements" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_achievements_achievement_id" baseTableName="user_achievements" baseColumnNames="achievement_id"
+            referencedTableName="achievements" referencedColumnNames="achievement_id"/>
+    </changeSet>
+
+    <!-- Referrals -->
+    <changeSet id="36" author="auto">
+        <createTable tableName="referrals">
+            <column name="referral_id" type="VARCHAR(255)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="wallet" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="referrer_id" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_referrals_user_id" baseTableName="referrals" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+            <addForeignKeyConstraint constraintName="fk_referrals_referrer_id" baseTableName="referrals" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Leaderboards -->
+    <changeSet id="37" author="auto">
+        <createTable tableName="leaderboards">
+            <column name="leaderboard_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="leaderboard_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reference_id" type="INT"/>
+            <column name="period" type="VARCHAR(255)"/>
+            <column name="period_start_date" type="TIMESTAMP"/>
+            <column name="period_end_date" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="is_active" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Leaderboard_Entries -->
+    <changeSet id="38" author="auto">
+        <createTable tableName="leaderboard_entries">
+            <column name="entry_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="leaderboard_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rank" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_leaderboard_entries_leaderboard_id" baseTableName="leaderboard_entries" baseColumnNames="leaderboard_id"
+            referencedTableName="leaderboards" referencedColumnNames="leaderboard_id"/>
+        <addForeignKeyConstraint constraintName="fk_leaderboard_entries_user_id" baseTableName="leaderboard_entries" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <changeSet id="39" author="auto">
+        <createTable tableName="discussion_forums">
+            <column name="forum_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="course_id" type="INT"/>
+            <column name="section_id" type="INT"/>
+            <column name="batch_id" type="INT"/>
+            <column name="content_item_id" type="INT"/>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT"/>
+            <column name="view_count" type="INT"/>
+            <column name="is_pinned" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="is_locked" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_discussion_forums_course_id" baseTableName="discussion_forums" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_discussion_forums_batch_id" baseTableName="discussion_forums" baseColumnNames="batch_id"
+            referencedTableName="batches" referencedColumnNames="batch_id"/>
+        <addForeignKeyConstraint constraintName="fk_discussion_forums_section_id" baseTableName="discussion_forums" baseColumnNames="section_id"
+            referencedTableName="curriculum_sections" referencedColumnNames="section_id"/>
+        <addForeignKeyConstraint constraintName="fk_discussion_forums_content_item_id" baseTableName="discussion_forums" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+        <addForeignKeyConstraint constraintName="fk_discussion_forums_user_id" baseTableName="discussion_forums" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Forum_Topics
+    <changeSet id="40" author="auto">
+        <createTable tableName="forum_topics">
+            <column name="topic_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="forum_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="view_count" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="is_pinned" type="BOOLEAN"/>
+            <column name="is_locked" type="BOOLEAN"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_forum_topics_forum_id" baseTableName="forum_topics" baseColumnNames="forum_id"
+            referencedTableName="discussion_forums" referencedColumnNames="forum_id"/>
+        <addForeignKeyConstraint constraintName="fk_forum_topics_user_id" baseTableName="forum_topics" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet> -->
+
+    <changeSet id="41" author="auto">
+        <createTable tableName="forum_replies">
+            <column name="reply_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="forum_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vote" type="INT"/>
+            <column name="content" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="is_solution" type="BOOLEAN" defaultValueBoolean="false"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_forum_replies_forum_id" baseTableName="forum_replies" baseColumnNames="forum_id"
+            referencedTableName="discussion_forums" referencedColumnNames="forum_id"/>
+        <addForeignKeyConstraint constraintName="fk_forum_replies_user_id" baseTableName="forum_replies" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+
+    <!-- Content_Comments -->
+    <changeSet id="42" author="auto">
+        <createTable tableName="content_comments">
+            <column name="comment_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="content_item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_comment_id" type="INT"/>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp_seconds" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_content_comments_content_item_id" baseTableName="content_comments" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+        <addForeignKeyConstraint constraintName="fk_content_comments_user_id" baseTableName="content_comments" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_content_comments_parent_comment_id" baseTableName="content_comments" baseColumnNames="parent_comment_id"
+            referencedTableName="content_comments" referencedColumnNames="comment_id"/>
+    </changeSet>
+
+    <!-- Learning_Paths -->
+    <changeSet id="43" author="auto">
+        <createTable tableName="learning_paths">
+            <column name="path_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="thumbnail_url" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="created_by" type="INT"/>
+            <column name="is_published" type="BOOLEAN"/>
+            <column name="is_featured" type="BOOLEAN"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_learning_paths_created_by" baseTableName="learning_paths" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Path_Courses -->
+    <changeSet id="44" author="auto">
+        <createTable tableName="path_courses">
+            <column name="path_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sequence_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_required" type="BOOLEAN"/>
+        </createTable>
+        <addPrimaryKey tableName="path_courses" columnNames="path_id,course_id"/>
+        <addForeignKeyConstraint constraintName="fk_path_courses_path_id" baseTableName="path_courses" baseColumnNames="path_id"
+            referencedTableName="learning_paths" referencedColumnNames="path_id"/>
+        <addForeignKeyConstraint constraintName="fk_path_courses_course_id" baseTableName="path_courses" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+    </changeSet>
+
+    <!-- Cohorts -->
+    <changeSet id="45" author="auto">
+        <createTable tableName="cohorts">
+            <column name="cohort_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="course_id" type="INT"/>
+            <column name="path_id" type="INT"/>
+            <column name="start_date" type="TIMESTAMP"/>
+            <column name="end_date" type="TIMESTAMP"/>
+            <column name="max_members" type="INT"/>
+            <column name="enrollment_code" type="VARCHAR(255)"/>
+            <column name="created_by" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="is_active" type="BOOLEAN"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_cohorts_course_id" baseTableName="cohorts" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_cohorts_path_id" baseTableName="cohorts" baseColumnNames="path_id"
+            referencedTableName="learning_paths" referencedColumnNames="path_id"/>
+        <addForeignKeyConstraint constraintName="fk_cohorts_created_by" baseTableName="cohorts" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Cohort_Members -->
+    <changeSet id="46" author="auto">
+        <createTable tableName="cohort_members">
+            <column name="cohort_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(255)"/>
+            <column name="joined_at" type="TIMESTAMP"/>
+        </createTable>
+        <addPrimaryKey tableName="cohort_members" columnNames="cohort_id,user_id"/>
+        <addForeignKeyConstraint constraintName="fk_cohort_members_cohort_id" baseTableName="cohort_members" baseColumnNames="cohort_id"
+            referencedTableName="cohorts" referencedColumnNames="cohort_id"/>
+        <addForeignKeyConstraint constraintName="fk_cohort_members_user_id" baseTableName="cohort_members" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Coupons -->
+    <changeSet id="48" author="auto">
+        <createTable tableName="coupons">
+            <column name="coupon_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="code" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="discount_percentage" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="min_purchase_amount" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN"/>
+            <column name="coupon_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Payments -->
+    <changeSet id="49" author="auto">
+        <createTable tableName="payments">
+            <column name="payment_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency" type="VARCHAR(255)"/>
+            <column name="payment_status" type="VARCHAR(255)"/>
+            <column name="payment_method" type="VARCHAR(255)"/>
+            <column name="transaction_id" type="VARCHAR(255)"/>
+            <column name="payment_gateway" type="VARCHAR(255)"/>
+            <column name="course_id" type="INT"/>
+            <column name="bundle_id" type="INT"/>
+            <column name="razorpay_order_id" type="VARCHAR(255)"/>
+            <column name="razorpay_payment_id" type="VARCHAR(255)"/>
+            <column name="razorpay_signature" type="VARCHAR(255)"/>
+            <column name="plan_id" type="INT"/>
+            <column name="coupon_id" type="INT"/>
+            <column name="discount_amount" type="DECIMAL"/>
+            <column name="referral_code" type="VARCHAR(255)"/>
+            <column name="update_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
+
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_payments_user_id" baseTableName="payments" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_payments_course_id" baseTableName="payments" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_payments_bundle_id" baseTableName="payments" baseColumnNames="bundle_id"
+            referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+        <addForeignKeyConstraint constraintName="fk_payments_plan_id" baseTableName="payments" baseColumnNames="plan_id"
+            referencedTableName="payment_plans" referencedColumnNames="plan_id"/>
+        <addForeignKeyConstraint constraintName="fk_payments_coupon_id" baseTableName="payments" baseColumnNames="coupon_id"
+            referencedTableName="coupons" referencedColumnNames="coupon_id"/>
+    </changeSet>
+
+    <!-- Subscriptions -->
+    <changeSet id="50" author="auto">
+        <createTable tableName="subscriptions">
+            <column name="subscription_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="plan_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="start_date" type="TIMESTAMP"/>
+            <column name="end_date" type="TIMESTAMP"/>
+            <column name="next_billing_date" type="TIMESTAMP"/>
+            <column name="payment_method_id" type="VARCHAR(255)"/>
+            <column name="external_subscription_id" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="canceled_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_subscriptions_user_id" baseTableName="subscriptions" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_subscriptions_plan_id" baseTableName="subscriptions" baseColumnNames="plan_id"
+            referencedTableName="payment_plans" referencedColumnNames="plan_id"/>
+    </changeSet>
+
+    <!-- Invoices -->
+    <changeSet id="51" author="auto">
+        <createTable tableName="invoices">
+            <column name="invoice_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="payment_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invoice_number" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="invoice_url" type="VARCHAR(255)"/>
+            <column name="amount" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tax_amount" type="DECIMAL"/>
+            <column name="total_amount" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invoice_date" type="TIMESTAMP"/>
+            <column name="due_date" type="TIMESTAMP"/>
+            <column name="paid_at" type="TIMESTAMP"/>
+            <column name="discount_amount" type="DECIMAL"/>
+            <column name="status" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_invoices_payment_id" baseTableName="invoices" baseColumnNames="payment_id"
+            referencedTableName="payments" referencedColumnNames="payment_id"/>
+        <addForeignKeyConstraint constraintName="fk_invoices_user_id" baseTableName="invoices" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Notifications -->
+    <changeSet id="52" author="auto">
+        <createTable tableName="notifications">
+            <column name="notification_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notification_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="TEXT"/>
+            <column name="entity_type" type="VARCHAR(255)"/>
+            <column name="entity_id" type="INT"/>
+            <column name="deep_link" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="send_email" type="BOOLEAN"/>
+            <column name="send_push" type="BOOLEAN"/>
+            <column name="sent_at" type="TIMESTAMP"/>
+            <column name="read_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_notifications_user_id" baseTableName="notifications" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Email_Templates -->
+    <changeSet id="53" author="auto">
+        <createTable tableName="email_templates">
+            <column name="template_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="body" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="template_type" type="VARCHAR(255)"/>
+            <column name="variables" type="JSON"/>
+            <column name="is_active" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- User_Notes -->
+    <changeSet id="54" author="auto">
+        <createTable tableName="user_notes">
+            <column name="note_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="note_text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp_seconds" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_notes_user_id" baseTableName="user_notes" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Admin_Actions -->
+    <changeSet id="55" author="auto">
+        <createTable tableName="admin_actions">
+            <column name="action_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="admin_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_type" type="VARCHAR(255)"/>
+            <column name="target_id" type="INT"/>
+            <column name="details" type="JSON"/>
+            <column name="ip_address" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_admin_actions_admin_id" baseTableName="admin_actions" baseColumnNames="admin_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- System_Settings -->
+    <changeSet id="56" author="auto">
+        <createTable tableName="system_settings">
+            <column name="setting_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="setting_key" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="setting_value" type="JSON"/>
+            <column name="setting_group" type="VARCHAR(255)"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="updated_by" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_system_settings_updated_by" baseTableName="system_settings" baseColumnNames="updated_by"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Activity_Logs -->
+    <changeSet id="57" author="auto">
+        <createTable tableName="activity_logs">
+            <column name="log_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT"/>
+            <column name="activity_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(255)"/>
+            <column name="entity_id" type="INT"/>
+            <column name="details" type="JSON"/>
+            <column name="ip_address" type="VARCHAR(255)"/>
+            <column name="user_agent" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_activity_logs_user_id" baseTableName="activity_logs" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- System_Metrics -->
+    <changeSet id="58" author="auto">
+        <createTable tableName="system_metrics">
+            <column name="metric_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="metric_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metric_value" type="FLOAT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dimensions" type="JSON"/>
+            <column name="recorded_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Analytics_Daily -->
+    <changeSet id="59" author="auto">
+        <createTable tableName="analytics_daily">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metric_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metric_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(255)"/>
+            <column name="entity_id" type="INT"/>
+            <column name="value" type="FLOAT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dimensions" type="JSON"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Analytics_Hourly -->
+    <changeSet id="60" author="auto">
+        <createTable tableName="analytics_hourly">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="datetime" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metric_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metric_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(255)"/>
+            <column name="entity_id" type="INT"/>
+            <column name="value" type="FLOAT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dimensions" type="JSON"/>
+        </createTable>
+    </changeSet>
+
+    <!-- User_Engagement_Metrics -->
+    <changeSet id="61" author="auto">
+        <createTable tableName="user_engagement_metrics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_time_spent_seconds" type="INT"/>
+            <column name="content_interactions" type="INT"/>
+            <column name="social_interactions" type="INT"/>
+            <column name="assessment_completions" type="INT"/>
+            <column name="video_watch_time_seconds" type="INT"/>
+            <column name="reading_time_seconds" type="INT"/>
+            <column name="quiz_time_seconds" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_engagement_metrics_user_id" baseTableName="user_engagement_metrics" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Course_Analytics -->
+    <changeSet id="62" author="auto">
+        <createTable tableName="course_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="views" type="INT"/>
+            <column name="enrollments" type="INT"/>
+            <column name="completions" type="INT"/>
+            <column name="average_rating" type="DECIMAL"/>
+            <column name="revenue" type="DECIMAL"/>
+            <column name="engagement_minutes" type="INT"/>
+            <column name="dropout_count" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_course_analytics_course_id" baseTableName="course_analytics" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+    </changeSet>
+
+    <changeSet id="63" author="auto">
+        <createTable tableName="content_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="content_item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="views" type="INT"/>
+            <column name="completions" type="INT"/>
+            <column name="average_time_spent_seconds" type="INT"/>
+            <column name="skip_rate" type="DECIMAL"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_content_analytics_content_item_id" baseTableName="content_analytics" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+    </changeSet>
+
+    <!-- Video_Analytics -->
+    <changeSet id="64" author="auto">
+        <createTable tableName="video_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="video_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="views" type="INT"/>
+            <column name="complete_views" type="INT"/>
+            <column name="average_watch_time_seconds" type="INT"/>
+            <column name="drop_off_points" type="JSON"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_video_analytics_video_id" baseTableName="video_analytics" baseColumnNames="video_id"
+            referencedTableName="videos" referencedColumnNames="video_id"/>
+    </changeSet>
+
+    <!-- Quiz_Analytics -->
+    <changeSet id="65" author="auto">
+        <createTable tableName="quiz_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="quiz_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attempts" type="INT"/>
+            <column name="completions" type="INT"/>
+            <column name="pass_count" type="INT"/>
+            <column name="average_score" type="DECIMAL"/>
+            <column name="average_time_seconds" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_quiz_analytics_quiz_id" baseTableName="quiz_analytics" baseColumnNames="quiz_id"
+            referencedTableName="quizzes" referencedColumnNames="quiz_id"/>
+    </changeSet>
+
+    <!-- Question_Analytics -->
+    <changeSet id="66" author="auto">
+        <createTable tableName="question_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="question_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attempts" type="INT"/>
+            <column name="correct_count" type="INT"/>
+            <column name="incorrect_count" type="INT"/>
+            <column name="skipped_count" type="INT"/>
+            <column name="average_time_seconds" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_question_analytics_question_id" baseTableName="question_analytics" baseColumnNames="question_id"
+            referencedTableName="questions" referencedColumnNames="question_id"/>
+    </changeSet>
+
+    <!-- Search_Analytics -->
+    <changeSet id="67" author="auto">
+        <createTable tableName="search_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="search_term" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT"/>
+            <column name="result_count" type="INT"/>
+            <column name="clicked_result_id" type="INT"/>
+            <column name="clicked_result_type" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_search_analytics_user_id" baseTableName="search_analytics" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Revenue_Analytics -->
+    <changeSet id="68" author="auto">
+        <createTable tableName="revenue_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revenue_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="INT"/>
+            <column name="entity_type" type="VARCHAR(255)"/>
+            <column name="gross_amount" type="DECIMAL"/>
+            <column name="tax_amount" type="DECIMAL"/>
+            <column name="discount_amount" type="DECIMAL"/>
+            <column name="net_amount" type="DECIMAL"/>
+            <column name="transaction_count" type="INT"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Cohort_Analytics -->
+    <changeSet id="69" author="auto">
+        <createTable tableName="cohort_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="cohort_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active_users" type="INT"/>
+            <column name="engagement_minutes" type="INT"/>
+            <column name="completion_rate" type="DECIMAL"/>
+            <column name="dropout_count" type="INT"/>
+            <column name="average_progress" type="DECIMAL"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_cohort_analytics_cohort_id" baseTableName="cohort_analytics" baseColumnNames="cohort_id"
+            referencedTableName="cohorts" referencedColumnNames="cohort_id"/>
+    </changeSet>
+
+    <!-- Retention_Analytics -->
+    <changeSet id="70" author="auto">
+        <createTable tableName="retention_analytics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="cohort_start_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="days_since_start" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_count" type="INT"/>
+            <column name="retention_rate" type="DECIMAL"/>
+            <column name="course_id" type="INT"/>
+            <column name="bundle_id" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_retention_analytics_course_id" baseTableName="retention_analytics" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_retention_analytics_bundle_id" baseTableName="retention_analytics" baseColumnNames="bundle_id"
+            referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+    </changeSet>
+
+    <!-- User_Dashboard_Metrics -->
+    <changeSet id="71" author="auto">
+        <createTable tableName="user_dashboard_metrics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_users" type="INT"/>
+            <column name="active_users_daily" type="INT"/>
+            <column name="active_users_weekly" type="INT"/>
+            <column name="active_users_monthly" type="INT"/>
+            <column name="new_registrations" type="INT"/>
+            <column name="course_enrollments" type="INT"/>
+            <column name="course_completions" type="INT"/>
+            <column name="average_engagement_minutes" type="DECIMAL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Course_Dashboard_Metrics -->
+    <changeSet id="72" author="auto">
+        <createTable tableName="course_dashboard_metrics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_courses" type="INT"/>
+            <column name="published_courses" type="INT"/>
+            <column name="active_courses" type="INT"/>
+            <column name="total_enrollments" type="INT"/>
+            <column name="total_completions" type="INT"/>
+            <column name="average_completion_rate" type="DECIMAL"/>
+            <column name="total_content_hours" type="DECIMAL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Revenue_Dashboard_Metrics -->
+    <changeSet id="73" author="auto">
+        <createTable tableName="revenue_dashboard_metrics">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="period" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_revenue" type="DECIMAL"/>
+            <column name="subscription_revenue" type="DECIMAL"/>
+            <column name="course_revenue" type="DECIMAL"/>
+            <column name="bundle_revenue" type="DECIMAL"/>
+            <column name="average_revenue_per_user" type="DECIMAL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Search_Index -->
+    <changeSet id="74" author="auto">
+        <createTable tableName="search_index">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT"/>
+            <column name="keywords" type="VARCHAR(255)"/>
+            <column name="search_vector" type="TSVECTOR"/>
+            <column name="last_indexed_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Content_Similarities -->
+    <changeSet id="75" author="auto">
+        <createTable tableName="content_similarities">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="content_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="similar_content_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="similarity_score" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="similarity_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_calculated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- User_Recommendations -->
+    <changeSet id="76" author="auto">
+        <createTable tableName="user_recommendations">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reason" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_recommendations_user_id" baseTableName="user_recommendations" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- ApplicationConfiguration -->
+    <changeSet id="77" author="system">
+        <createTable tableName="applicationconfiguration">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="authenticationstrategy" type="INTEGER"/>
+            <column name="availableversion" type="VARCHAR(255)"/>
+            <column name="firstapplicationstart" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="installedversion" type="VARCHAR(255)"/>
+            <column name="pathurl" type="VARCHAR(255)"/>
+            <column name="setupcomplete" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Features -->
+    <changeSet id="78" author="system">
+        <createTable tableName="features">
+            <column name="id" type="VARCHAR(200)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="additionalinfo" type="VARCHAR(255)"/>
+            <column name="availableversion" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="enablemanagerrole" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="installedversion" type="VARCHAR(255)"/>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="scope" type="VARCHAR(255)"/>
+            <column name="supportedversions" type="VARCHAR(255)"/>
+     </createTable>
+    </changeSet>
+
+    <!-- Educations -->
+    <changeSet id="79" author="auto">
+        <createTable tableName="educations">
+            <column name="education_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="profile_id" type="INT"/>
+            <column name="level" type="VARCHAR(50)"/>
+            <column name="institution_name" type="VARCHAR(255)"/>
+            <column name="pass_of_year" type="DATE"/>
+            <column name="start_date" type="DATE"/>
+            <column name="end_date" type="DATE"/>
+            <column name="branch" type="VARCHAR(100)"/>
+            <column name="board" type="VARCHAR(100)"/>
+            <column name="courses" type="TEXT"/>
+            <column name="percentage" type="VARCHAR(10)"/>
+            <column name="roll_no" type="VARCHAR(50)"/>
+            <column name="education_type" type="VARCHAR(50)"/>
+            <column name="marksheet" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_educations_profile_id" baseTableName="educations" baseColumnNames="profile_id"
+            referencedTableName="profiles" referencedColumnNames="profile_id"/>
+    </changeSet>
+
+
+    <!-- Content_Analytics -->
+    <!-- Course Reviews -->
+    <changeSet id="85" author="auto">
+        <createTable tableName="course_reviews">
+            <column name="review_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_course_reviews_course_id"
+            baseTableName="course_reviews" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_course_reviews_user_id"
+            baseTableName="course_reviews" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
+
+    <!-- Curriculum_Courses -->
+    <changeSet id="86" author="auto">
+        <createTable tableName="curriculum_courses">
+            <column name="curriculum_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sequence_order" type="INT"/>
+        </createTable>
+
+        <addPrimaryKey 
+            tableName="curriculum_courses" 
+            columnNames="curriculum_id, course_id" 
+            constraintName="pk_curriculum_courses"/>
+
+        <addUniqueConstraint 
+            tableName="curriculum_courses" 
+            columnNames="curriculum_id, course_id" 
+            constraintName="uk_curriculum_courses_unique"/>
+
+        <createIndex 
+            tableName="curriculum_courses" 
+            indexName="idx_curriculum_courses_curriculum_id">
+            <column name="curriculum_id"/>
+        </createIndex>
+
+        <createIndex 
+            tableName="curriculum_courses" 
+            indexName="idx_curriculum_courses_course_id">
+            <column name="course_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint 
+            constraintName="fk_curriculum_courses_curriculum_id"
+            baseTableName="curriculum_courses" baseColumnNames="curriculum_id"
+            referencedTableName="curriculum" referencedColumnNames="curriculum_id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint 
+            constraintName="fk_curriculum_courses_course_id"
+            baseTableName="curriculum_courses" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Installments -->
+    <changeSet id="88" author="auto">
+        <createTable tableName="installments">
+            <column name="installment_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+            
+            </column>
+            <column name="bundle_id" type="INT">
+            </column>
+            <column name="payment_id" type="INT"/>  
+            <column name="status" type="VARCHAR(255)"/>
+                <column name="amount" type="INT"/>
+            <column name="due_date" type="TIMESTAMP"/>
+
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_installments_user_id" 
+            baseTableName="installments" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_installments_course_id" 
+            baseTableName="installments" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_installments_payment_id" 
+            baseTableName="installments" baseColumnNames="payment_id"
+            referencedTableName="payments" referencedColumnNames="payment_id"/>
+        <addForeignKeyConstraint constraintName="fk_installments_bundle_id"
+            baseTableName="installments" baseColumnNames="bundle_id"
+            referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+    </changeSet>
+
+    <!-- Course_Access_Controls -->
+    <changeSet id="89" author="auto">
+        <createTable tableName="course_access_controls">
+            <column name="access_control_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="bundle_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="installment_id" type="INT"> 
+                <constraints nullable="false"/> 
+            </column>
+            <column name="access_granted" type="BOOLEAN"> 
+                <constraints nullable="false"/>
+            </column>
+            <column name="active_by" type="TIMESTAMP"/>
+
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_course_access_controls_user_id" 
+            baseTableName="course_access_controls" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_course_access_controls_course_id" 
+            baseTableName="course_access_controls" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_course_access_controls_bundle_id" 
+            baseTableName="course_access_controls" baseColumnNames="bundle_id"
+            referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+        <addForeignKeyConstraint constraintName="fk_course_access_controls_installment_id" 
+            baseTableName="course_access_controls" baseColumnNames="installment_id"
+            referencedTableName="installments" referencedColumnNames="installment_id"/>
+    </changeSet>
+    
+
+    <!-- Course_Plans -->
+    <changeSet id="90" author="auto">
+        <createTable tableName="course_plans">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="plan_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="bundle_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_course_plans_course"
+                                 baseTableName="course_plans" baseColumnNames="course_id"
+                                 referencedTableName="courses" referencedColumnNames="course_id"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_course_plans_bundle"
+                                 baseTableName="course_plans" baseColumnNames="bundle_id"
+                                 referencedTableName="course_bundles" referencedColumnNames="bundle_id"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_course_plans_plan"
+                                 baseTableName="course_plans" baseColumnNames="plan_id"
+                                 referencedTableName="payment_plans" referencedColumnNames="plan_id"
+                                 onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE course_plans
+                ADD CONSTRAINT chk_course_or_bundle
+                    CHECK ((course_id IS NOT NULL AND bundle_id IS NULL) OR (course_id IS NULL AND bundle_id IS NOT NULL));
+        </sql>
+    </changeSet>
+
+    <!-- Batch_Courses -->
+    <changeSet id="91" author="auto">
+        <createTable tableName="batch_courses">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="batch_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="bundle_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="curriculum_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="curriculum_section_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="primary_for_course" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_published" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="published_at" type="TIMESTAMP"/>
+            <column name="unpublished_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_batch_courses_batch_id"
+                                 baseTableName="batch_courses" baseColumnNames="batch_id"
+                                 referencedTableName="batches" referencedColumnNames="batch_id"/>
+        <addForeignKeyConstraint constraintName="fk_batch_courses_course_id"
+                                 baseTableName="batch_courses" baseColumnNames="course_id"
+                                 referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_batch_courses_curriculum_id"
+                                 baseTableName="batch_courses" baseColumnNames="curriculum_id"
+                                 referencedTableName="curriculum" referencedColumnNames="curriculum_id"/>
+        <addForeignKeyConstraint constraintName="fk_batch_courses_curriculum_section_id"
+                                 baseTableName="batch_courses" baseColumnNames="curriculum_section_id"
+                                 referencedTableName="curriculum_sections" referencedColumnNames="section_id"/>
+        <addForeignKeyConstraint constraintName="fk_batch_courses_bundle_id"
+                                 baseTableName="batch_courses" baseColumnNames="bundle_id"
+                                 referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+    </changeSet>
+        
+    <!-- PaymentPlan_Rules -->
+    <changeSet id="92" author="auto">
+        <createTable tableName="paymentplan_rules">
+            <column name="payment_plan_rules_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="plan_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="installment" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="weightage" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="interval" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint 
+            constraintName="fk_paymentplan_rules_plan_id"
+            baseTableName="paymentplan_rules" baseColumnNames="plan_id"
+            referencedTableName="payment_plans" referencedColumnNames="plan_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- User_Section_Progress -->
+    <changeSet id="93" author="auto">
+        <createTable tableName="user_section_progress">
+            <column name="progress_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="section_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="progress_percentage" type="DECIMAL"/>
+            <column name="last_updated" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_section_progress_user_id" baseTableName="user_section_progress" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_section_progress_section_id" baseTableName="user_section_progress" baseColumnNames="section_id"
+            referencedTableName="curriculum_sections" referencedColumnNames="section_id"/>
+    </changeSet>
+
+    <!-- User_Curriculum_Progress -->
+    <changeSet id="94" author="auto">
+        <createTable tableName="user_curriculum_progress">
+            <column name="progress_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="curriculum_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="progress_percentage" type="DECIMAL"/>
+            <column name="last_updated" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_curriculum_progress_user_id" baseTableName="user_curriculum_progress" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_curriculum_progress_curriculum_id" baseTableName="user_curriculum_progress" baseColumnNames="curriculum_id"
+            referencedTableName="curriculum" referencedColumnNames="curriculum_id"/>
+    </changeSet>
+
+    <!-- User_Course_Progress -->
+    <changeSet id="95" author="auto">
+        <createTable tableName="user_course_progress">
+            <column name="progress_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="progress_percentage" type="DECIMAL"/>
+            <column name="last_updated" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_course_progress_user_id" baseTableName="user_course_progress" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_course_progress_course_id" baseTableName="user_course_progress" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+    </changeSet>
+
+    <!-- User_Bundle_Progress -->
+    <changeSet id="96" author="auto">
+        <createTable tableName="user_bundle_progress">
+            <column name="progress_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bundle_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="progress_percentage" type="DECIMAL"/>
+            <column name="last_updated" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_user_bundle_progress_user_id" baseTableName="user_bundle_progress" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_user_bundle_progress_bundle_id" baseTableName="user_bundle_progress" baseColumnNames="bundle_id"
+            referencedTableName="course_bundles" referencedColumnNames="bundle_id"/>
+    </changeSet>
+
+
+    <!-- Experiences -->
+    <changeSet id="97" author="auto">
+        <createTable tableName="experiences">
+            <column name="experience_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="profile_id" type="INT"/>
+            <column name="company" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="startdate" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enddate" type="DATE"/>
+            <column name="location" type="VARCHAR(255)"/>
+            <column name="details" type="TEXT"/>
+            <column name="position_type" type="VARCHAR(50)"/>
+            <column name="designation" type="VARCHAR(100)"/>
+            <column name="company_sector" type="VARCHAR(100)"/>
+            <column name="experience_certificate" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_experiences_profile_id" baseTableName="experiences" baseColumnNames="profile_id"
+            referencedTableName="profiles" referencedColumnNames="profile_id"/>
+    </changeSet>
+
+    <!-- Skills -->
+    <changeSet id="98" author="auto">
+        <createTable tableName="skills">
+            <column name="skill_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="profile_id" type="INT"/>
+            <column name="skill_name" type="VARCHAR(100)">
+            <constraints nullable="false"/>
+            </column>
+            <column name="proficiency_level" type="VARCHAR(50)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_skills_profile_id" baseTableName="skills" baseColumnNames="profile_id"
+            referencedTableName="profiles" referencedColumnNames="profile_id"/>
+    </changeSet>    
+
+    <!-- Languages -->
+    <changeSet id="99" author="auto">
+        <createTable tableName="languages">
+            <column name="language_id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="profile_id" type="INT"/>
+            <column name="language_name" type="VARCHAR(100)">
+            <constraints nullable="false"/>
+            </column>
+            <column name="proficiency_level" type="VARCHAR(50)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_languages_profile_id" baseTableName="languages" baseColumnNames="profile_id"
+            referencedTableName="profiles" referencedColumnNames="profile_id"/>
+    </changeSet>
+
+    <!-- Live Sessions -->
+    <changeSet id="100" author="auto">
+        <createTable tableName="live_sessions">
+            <column name="session_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="batch_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="instructor_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <!-- Links to curriculum section content — set when admin places session in curriculum -->
+            <column name="content_item_id" type="INT">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="zoom_join_url" type="VARCHAR(512)"/>
+            <!-- Reserved for Phase 2: Zoom API auto-create -->
+            <column name="zoom_meeting_id" type="VARCHAR(100)"/>
+            <column name="scheduled_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="duration_minutes" type="INT" defaultValueNumeric="60">
+                <constraints nullable="false"/>
+            </column>
+            <!-- SCHEDULED | LIVE | COMPLETED | CANCELLED -->
+            <column name="status" type="VARCHAR(50)" defaultValue="SCHEDULED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_live_sessions_batch_id"
+            baseTableName="live_sessions" baseColumnNames="batch_id"
+            referencedTableName="batches" referencedColumnNames="batch_id"/>
+        <addForeignKeyConstraint constraintName="fk_live_sessions_course_id"
+            baseTableName="live_sessions" baseColumnNames="course_id"
+            referencedTableName="courses" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint constraintName="fk_live_sessions_instructor_id"
+            baseTableName="live_sessions" baseColumnNames="instructor_id"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_live_sessions_content_item_id"
+            baseTableName="live_sessions" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+        <addForeignKeyConstraint constraintName="fk_live_sessions_created_by"
+            baseTableName="live_sessions" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="user_id"/>
+
+        <!-- Frequently queried together: get upcoming sessions for a batch -->
+        <createIndex indexName="idx_live_sessions_batch_scheduled" tableName="live_sessions">
+            <column name="batch_id"/>
+            <column name="scheduled_at"/>
+        </createIndex>
+        <createIndex indexName="idx_live_sessions_status" tableName="live_sessions">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Session Recordings -->
+    <changeSet id="101" author="auto">
+        <createTable tableName="session_recordings">
+            <column name="recording_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <!-- Nullable: standalone recording can exist without a tracked live_session -->
+            <column name="session_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <!-- Links to curriculum section content — set when admin places recording in curriculum -->
+            <column name="content_item_id" type="INT">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="recording_url" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <!-- Zoom cloud recording password if set -->
+            <column name="recording_password" type="VARCHAR(100)"/>
+            <column name="duration_seconds" type="INT"/>
+            <column name="recorded_at" type="TIMESTAMP"/>
+            <!-- Reserved for Phase 3: VdoCipher DRM migration -->
+            <column name="vdo_cipher_id" type="VARCHAR(200)"/>
+            <!-- Admin can hide recordings from students -->
+            <column name="is_visible" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_session_recordings_session_id"
+            baseTableName="session_recordings" baseColumnNames="session_id"
+            referencedTableName="live_sessions" referencedColumnNames="session_id"
+            onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_session_recordings_content_item_id"
+            baseTableName="session_recordings" baseColumnNames="content_item_id"
+            referencedTableName="content_items" referencedColumnNames="item_id"/>
+
+        <createIndex indexName="idx_session_recordings_session_id" tableName="session_recordings">
+            <column name="session_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- User_Question_Responses -->
+    <changeSet id="102" author="auto">
+        <addColumn tableName="user_question_responses">
+            <column name="marked_for_review" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="selected_option_ids" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Exercise_Attempts --> 
+    <changeSet id="103" author="auto">
+        <addUniqueConstraint
+            tableName="exercise_attempts"
+            columnNames="user_id, exercise_id, attempt_number"
+            constraintName="uq_exercise_attempts_user_exercise_attempt"/>
+    </changeSet>
+
+    <!-- Questions -->
+    <changeSet id="104" author="auto">
+        <addColumn tableName="questions">
+            <column name="correct_answer" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Correct_Answer for Questions -->
+    <changeSet id="105" author="auto">
+        <modifyDataType tableName="questions" columnName="correct_answer" newDataType="VARCHAR(500)"/>
+    </changeSet>
+
+    <!-- Thumbnail_URL for Courses -->
+    <changeSet id="106" author="atoms">
+        <dropColumn tableName="courses" columnName="thumbnail_image"/>
+        <addColumn tableName="courses">
+            <column name="thumbnail_url" type="VARCHAR(512)"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="courses" columnName="thumbnail_url"/>
+            <addColumn tableName="courses">
+                <column name="thumbnail_image" type="BYTEA"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <!-- Profile_Image_URL for Profiles -->
+    <changeSet id="107" author="atoms">
+        <dropColumn tableName="profiles" columnName="profile_image"/>
+        <addColumn tableName="profiles">
+            <column name="profile_image_url" type="VARCHAR(512)"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="profiles" columnName="profile_image_url"/>
+            <addColumn tableName="profiles">
+                <column name="profile_image" type="BYTEA"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <!-- Ebooks_URL for Ebooks -->
+    <changeSet id="108" author="atoms">
+        <modifyDataType tableName="ebooks" columnName="file_url" newDataType="VARCHAR(512)"/>
+        <modifyDataType tableName="ebooks" columnName="cover_image_url" newDataType="VARCHAR(512)"/>
+        <rollback>
+            <modifyDataType tableName="ebooks" columnName="file_url" newDataType="VARCHAR(255)"/>
+            <modifyDataType tableName="ebooks" columnName="cover_image_url" newDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Negative_Mark for Questions -->
+    <changeSet id="109" author="atoms" context="dev,prod">
+        <addColumn tableName="questions">
+            <column name="negative_mark" type="DECIMAL(5,2)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="questions" columnName="negative_mark"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

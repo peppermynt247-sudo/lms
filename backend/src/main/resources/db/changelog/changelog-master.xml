@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <!--
+        ================================================================
+        ATOMS LMS — Liquibase Master Changelog
+        ================================================================
+
+        GOLDEN RULES — Read before touching anything here:
+
+        1. NEVER modify an already-applied changeset.
+           Liquibase checksums changeset bodies. Any change breaks the
+           checksum and halts application startup on every running env.
+
+        2. NEVER alter the database directly (no manual psql DDL).
+           Every schema change must go through a new changeset.
+
+        3. New changesets go in db/changelog/v1/ using versioned naming:
+             v1.X-kebab-case-description.xml
+           Examples:
+             v1.10-add-admission-status-column.xml
+             v1.11-index-payments-user-id.xml
+
+        4. No context (or context="dev,staging,prod") → schema changes, run everywhere
+           context="dev"               → seed/dummy data ONLY — never runs in staging or prod
+           RULE: All seed changesets MUST use context="dev" only.
+                 Staging and prod run with LIQUIBASE_CONTEXTS=prod.
+
+        5. Always include a <rollback> block in every new changeset.
+
+        6. Author must always be "atoms" in new changesets.
+
+        7. Deployment order: dev → staging → prod
+           Never promote a changeset to prod that hasn't passed staging.
+
+        ================================================================
+    -->
+
+    <!-- ============================================================
+         BASELINE — v1.0 Initial Schema (changesets 1–109)
+         Contains all tables as of the initial build.
+         DO NOT modify v1.0-initial-schema.xml.
+         ============================================================ -->
+    <include file="db/changelog/v1/v1.0-initial-schema.xml"/>
+
+    <!-- ============================================================
+         SEED DATA — dev and staging only
+         context="dev,staging" ensures this block NEVER runs in prod.
+         ============================================================ -->
+    <include file="db/changelog/v1/seeds/seed-dev.xml"/>
+
+    <!-- ============================================================
+         INCREMENTAL SCHEMA CHANGES
+         Add new <include> entries below as the schema evolves.
+         Keep them in version order. One file per logical change.
+
+         Example:
+           <include file="db/changelog/v1/v1.10-add-admission-status.xml"/>
+           <include file="db/changelog/v1/v1.11-index-payments-user-id.xml"/>
+         ============================================================ -->
+
+    <include file="db/changelog/v1/v1.10-add-exercise-num-questions.xml"/>
+
+</databaseChangeLog>

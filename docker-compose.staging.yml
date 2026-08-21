@@ -1,0 +1,63 @@
+services:
+
+  backend:
+    image: registry.digitalocean.com/atoms-lms/atoms-backend:staging
+    container_name: atoms-backend-staging
+    restart: always
+    env_file:
+      - .env.staging
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+    volumes:
+      - backend-logs:/var/log/atoms
+      - uploads:/opt/uploads
+      - ./certs/do-ca.crt:/app/certs/do-ca.crt:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --tries=1 --spider http://localhost:9080/actuator/health 2>&1; ret=$$?; [ $$ret -eq 0 ] || [ $$ret -eq 8 ]"]
+      interval: 15s
+      timeout: 10s
+      start_period: 150s
+      retries: 4
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    stop_grace_period: 35s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: atoms-nginx-staging
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-staging.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl-params.conf:/etc/nginx/ssl-params.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - app-network
+
+  certbot:
+    image: certbot/certbot:v2.11.0
+    container_name: atoms-certbot-staging
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done'"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  backend-logs:
+  uploads:

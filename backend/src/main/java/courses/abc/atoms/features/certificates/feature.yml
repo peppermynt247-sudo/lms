@@ -1,0 +1,15 @@
+id: certificates
+scope: custom
+name: certificate Management
+description: manage certificates.
+additionalInfo: Additional Information.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to administer all certificates.
+    permissions: [feature:certificates:view, feature:certificates:admin]
+  - role: Access
+    description: Allow a user to view certificates.
+    permissions: [feature:certificates:view]

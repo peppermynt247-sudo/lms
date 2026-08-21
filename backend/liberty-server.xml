@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="Atoms LMS Liberty Server for High-Scale Deployment">
+
+    <!-- Enable the following features -->
+    <featureManager>
+        <feature>webProfile-10.0</feature>
+        <feature>adminCenter-1.0</feature>
+        <feature>restConnector-2.0</feature>
+        <feature>monitor-1.0</feature>
+        <feature>mpMetrics-5.0</feature>
+        <feature>mpHealth-4.0</feature>
+        <feature>servlet-6.0</feature>
+        <feature>jsp-3.1</feature>
+        <feature>jsonp-2.1</feature>
+        <feature>jsonb-3.0</feature>
+        <feature>managedBeans-2.0</feature>
+        <feature>cdi-4.0</feature>
+        <feature>websocket-2.1</feature>
+    </featureManager>
+
+    <!-- HTTP Endpoint Configuration for High Scale -->
+    <httpEndpoint id="defaultHttpEndpoint"
+                  httpPort="8080"
+                  httpsPort="8443"
+                  host="*">
+        <tcpOptions soReuseAddr="true" 
+                   acceptThread="true"
+                   maxOpenConnections="65536"/>
+        <httpOptions
+            maxKeepAliveRequests="1000"
+            persistTimeout="60s"
+            readTimeout="60s"
+            writeTimeout="60s"
+            keepAlive="true"/>
+    </httpEndpoint>
+
+    <!-- SSL Configuration (Optional) -->
+    <ssl id="defaultSSLConfig" 
+         keyStoreRef="defaultKeyStore" 
+         sslProtocol="TLSv1.2" 
+         clientAuthenticationSupported="false" />
+    
+    <keyStore id="defaultKeyStore" 
+              password="liberty"
+              type="PKCS12"
+              location="key.p12" />
+
+    <!-- Application Configuration -->
+    <webApplication location="atoms.war" 
+                   contextRoot="/api">
+        <application-bnd>
+            <security-role name="users">
+                <group name="users" />
+            </security-role>
+        </application-bnd>
+    </webApplication>
+
+    <!-- Executor Configuration for High Concurrency -->
+    <executor name="DefaultExecutor"
+              id="default"
+              coreThreads="100"
+              maxThreads="800"
+              keepAlive="60s"
+              stealPolicy="STRICT"
+              rejectedWorkPolicy="CALLER_RUNS"/>
+
+    <!-- Session Management Configuration -->
+    <httpSession 
+        cookieName="JSESSIONID"
+        cookieHttpOnly="true"
+        cookieSecure="true"
+        cookieSameSite="Strict"
+        maxInMemorySessionCount="10000"
+        allowOverflow="true"
+        idReuse="true"
+        securityIntegrationEnabled="false"/>
+
+    <!-- Connection Manager for Database -->
+    <connectionManager id="conMgr" 
+                      maxPoolSize="50"
+                      minPoolSize="20"
+                      connectionTimeout="30s"
+                      maxIdleTime="30m"
+                      maxConnectionsPerThread="2"
+                      reapTime="3m"/>
+
+    <!-- Logging Configuration -->
+    <logging traceSpecification="*=info:courses.abc.atoms.*=fine"
+             maxFileSize="20"
+             maxFiles="10"
+             messageFormat="simple"
+             messageSource="message,trace,accessLog,ffdc,audit"
+             logDirectory="logs"/>
+
+    <!-- Access Logging -->
+    <httpAccessLogging 
+        id="accessLogging"
+        logFormat='%h %u %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %D'
+        filePath="logs/http_access.log"
+        maxFileSize="50"
+        maxFiles="2"/>
+
+    <!-- JVM Configuration -->
+    <jvm>
+        <!-- Memory settings -->
+        <jvmArgs>-Xms2g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=100</jvmArgs>
+        <jvmArgs>-XX:+UseStringDeduplication -XX:+OptimizeStringConcat</jvmArgs>
+        <jvmArgs>-Djava.net.preferIPv4Stack=true</jvmArgs>
+        <jvmArgs>-Dfile.encoding=UTF-8</jvmArgs>
+        <!-- Spring Boot specific -->
+        <jvmArgs>-Dspring.profiles.active=production</jvmArgs>
+    </jvm>
+
+    <!-- Admin Center Configuration -->
+    <quickStartSecurity userName="admin" userPassword="adminpass" />
+    <remoteFileAccess>
+        <writeDir>${server.config.dir}</writeDir>
+    </remoteFileAccess>
+
+    <!-- Application Monitoring -->
+    <monitor filter="WebSphere:type=ThreadPoolStats,name=Default Executor"
+             include="ActiveThreads,PoolSize"/>
+    <monitor filter="WebSphere:type=ServletStats,name=*"
+             include="RequestCount,ResponseTime"/>
+
+</server>

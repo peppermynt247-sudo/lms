@@ -1,0 +1,24 @@
+{
+	"applicationVersion": "1.0",
+	"updateDescription": "This update includes new features and improvements to the LMS.",
+	"featureList": [
+		{
+			"id": "bundle",
+			"scope": "Learning Management System",
+			"name": "All Features Bundle",
+			"description": "A bundle offering that includes all available Learning Management System features.",
+			"additionalInfo": "Additional Information.",
+			"version": "1.0",
+			"supportedVersions": "All"
+		},
+		{
+			"id": "enrollment",
+			"scope": "custom",
+			"name": "Enrollment Management",
+			"description": "Manage user enrollments in courses and training programs.",
+			"additionalInfo": "Additional Information.",
+			"version": "1.0",
+			"supportedVersions": "All"
+		}
+	]
+}

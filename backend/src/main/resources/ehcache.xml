@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.ehcache.org/v3"
+        xsi:schemaLocation="http://www.ehcache.org/v3 
+            http://www.ehcache.org/schema/ehcache-core-3.0.xsd">
+
+    <!-- Default cache template for Hibernate entities -->
+    <cache-template name="hibernateEntityCache">
+        <key-type>java.lang.Object</key-type>
+        <value-type>java.lang.Object</value-type>
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">1000</heap>
+            <offheap unit="MB">10</offheap>
+        </resources>
+    </cache-template>
+
+    <!-- Specific caches for Course entities -->
+    <cache alias="courses.abc.atoms.features.course.entities.Course" uses-template="hibernateEntityCache">
+        <expiry>
+            <ttl unit="minutes">60</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">2000</heap>
+            <offheap unit="MB">20</offheap>
+        </resources>
+    </cache>
+
+    <cache alias="courses.abc.atoms.features.course.entities.ContentItem" uses-template="hibernateEntityCache">
+        <expiry>
+            <ttl unit="minutes">45</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">5000</heap>
+            <offheap unit="MB">30</offheap>
+        </resources>
+    </cache>
+
+    <!-- Query cache for frequent queries -->
+    <cache alias="org.hibernate.cache.spi.QueryResultsCache">
+        <key-type>java.lang.Object</key-type>
+        <value-type>java.lang.Object</value-type>
+        <expiry>
+            <ttl unit="minutes">15</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">500</heap>
+            <offheap unit="MB">5</offheap>
+        </resources>
+    </cache>
+
+    <cache alias="org.hibernate.cache.spi.TimestampsCache">
+        <key-type>java.lang.Object</key-type>
+        <value-type>java.lang.Object</value-type>
+        <expiry>
+            <none/>
+        </expiry>
+        <resources>
+            <heap unit="entries">1000</heap>
+        </resources>
+    </cache>
+
+</config>

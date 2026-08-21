@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <changeSet id="v1.10-add-exercise-num-questions" author="atoms">
+        <comment>Add num_questions column to exercise table for question limit per exercise</comment>
+        <addColumn tableName="exercise">
+            <column name="num_questions" type="INTEGER">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="exercise" columnName="num_questions"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

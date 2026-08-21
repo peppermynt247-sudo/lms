@@ -1,0 +1,67 @@
+# Student Module
+id: student
+scope: custom
+name: Student Management
+description: Manage student profiles, enrollments, and academic records.
+additionalInfo: Additional student data management and tracking information.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Student
+    description: Allow a student to manage their own profile and view their academic information.
+    permissions: [feature:Student:view, feature:Student:self-manage]
+    activities:
+      - View personal profile
+      - Update contact information
+      - View academic records
+      - Access course materials
+      - View grades and transcripts
+      - Update personal preferences
+
+# Student Enrollment Module
+---
+id: enrollment
+scope: custom
+name: Enrollment Management
+description: Manage student course enrollments and registration processes.
+additionalInfo: Additional enrollment tracking and status management.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Student
+    description: Allow a student to manage their own enrollments and course registrations.
+    permissions: [feature:Enrollment:view, feature:Enrollment:self-enroll]
+    activities:
+      - View available courses
+      - Enroll in courses
+      - Drop courses (within allowed timeframe)
+      - View enrollment status
+      - Access enrollment history
+      - Submit enrollment requests
+      - View course prerequisites
+
+# Student Progress Module
+---
+id: studentprogress
+scope: custom
+name: Student Progress Management
+description: Track and manage student academic progress and performance metrics.
+additionalInfo: Additional configuration for progress tracking and assessment records.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Student
+    description: Allow a student to view their own academic progress and performance.
+    permissions: [feature:StudentProgress:view, feature:StudentProgress:self-view]
+    activities:
+      - View personal progress reports
+      - Track course completion status
+      - View assignment grades
+      - Access performance analytics
+      - View learning milestones
+      - Download progress certificates
+      - Set personal learning goals
+      - View study recommendations

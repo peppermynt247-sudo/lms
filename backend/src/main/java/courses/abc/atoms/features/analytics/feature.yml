@@ -1,0 +1,15 @@
+id: analytics
+scope: custom
+name: System Analytics
+description: Provides an overview of key system metrics like revenue, enrollments, and user counts.
+additionalInfo: Displays aggregated data for administrative and instructional staff.
+version: 1.0
+enableManagerRole: false
+supportedVersions: All
+roles:
+  - role: Admin
+    description: Allow a user to view all system analytics.
+    permissions: [feature:analytics:view]
+  - role: Instructor
+    description: Allow an instructor to view system analytics.
+    permissions: [feature:analytics:view]

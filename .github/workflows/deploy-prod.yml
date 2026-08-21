@@ -1,0 +1,368 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'student-frontend/**'
+      - 'docker-compose.prod.yml'
+      - 'nginx/**'
+      - '.github/workflows/deploy-prod.yml'
+
+  workflow_dispatch:
+    inputs:
+      force_all:
+        description: 'Force rebuild ALL service images (even unchanged ones)'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  REGISTRY: registry.digitalocean.com/atoms-lms
+
+jobs:
+
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      backend: ${{ steps.result.outputs.backend }}
+      admin_frontend: ${{ steps.result.outputs.admin_frontend }}
+      student_frontend: ${{ steps.result.outputs.student_frontend }}
+      infra: ${{ steps.result.outputs.infra }}
+      any_changed: ${{ steps.result.outputs.any_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run path filter
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            admin_frontend:
+              - 'frontend/**'
+            student_frontend:
+              - 'student-frontend/**'
+            infra:
+              - 'docker-compose.prod.yml'
+              - 'nginx/**'
+
+      - name: Compute final change flags
+        id: result
+        run: |
+          FORCE="${{ github.event.inputs.force_all }}"
+
+          if [[ "$FORCE" == "true" ]]; then
+            echo "backend=true"           >> $GITHUB_OUTPUT
+            echo "admin_frontend=true"    >> $GITHUB_OUTPUT
+            echo "student_frontend=true"  >> $GITHUB_OUTPUT
+            echo "infra=true"            >> $GITHUB_OUTPUT
+            echo "any_changed=true"      >> $GITHUB_OUTPUT
+          else
+            echo "backend=${{ steps.filter.outputs.backend }}"                       >> $GITHUB_OUTPUT
+            echo "admin_frontend=${{ steps.filter.outputs.admin_frontend }}"         >> $GITHUB_OUTPUT
+            echo "student_frontend=${{ steps.filter.outputs.student_frontend }}"     >> $GITHUB_OUTPUT
+            echo "infra=${{ steps.filter.outputs.infra }}"                           >> $GITHUB_OUTPUT
+
+            if [[ "${{ steps.filter.outputs.backend }}" == "true" ]] || \
+               [[ "${{ steps.filter.outputs.admin_frontend }}" == "true" ]] || \
+               [[ "${{ steps.filter.outputs.student_frontend }}" == "true" ]] || \
+               [[ "${{ steps.filter.outputs.infra }}" == "true" ]]; then
+              echo "any_changed=true" >> $GITHUB_OUTPUT
+            else
+              echo "any_changed=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Print change summary
+        run: |
+          echo "=========================="
+          echo " Change Detection Summary"
+          echo "=========================="
+          echo "  Backend          : ${{ steps.result.outputs.backend }}"
+          echo "  Admin Frontend   : ${{ steps.result.outputs.admin_frontend }}"
+          echo "  Student Frontend : ${{ steps.result.outputs.student_frontend }}"
+          echo "  Infra            : ${{ steps.result.outputs.infra }}"
+          echo "  Any changed      : ${{ steps.result.outputs.any_changed }}"
+          echo "  Force all        : ${{ github.event.inputs.force_all || 'false' }}"
+          echo "=========================="
+
+  test-backend:
+    name: "Backend — Test"
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: atoms_lms_test
+          POSTGRES_USER: atoms_lms_user
+          POSTGRES_PASSWORD: atoms_lms_user
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Run tests
+        run: cd backend && mvn verify -q
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+  build-backend:
+    name: "Backend — Build Image"
+    needs: [detect-changes, test-backend]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.backend == 'true' &&
+      (needs.test-backend.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DOCR
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/atoms-backend:latest
+            ${{ env.REGISTRY }}/atoms-backend:${{ github.sha }}
+          cache-from: type=gha,scope=backend-prod
+          cache-to: type=gha,mode=max,scope=backend-prod
+
+  build-admin-frontend:
+    name: "Admin Frontend — Build Image"
+    needs: detect-changes
+    if: needs.detect-changes.outputs.admin_frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DOCR
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push admin frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_BACKEND_REST_API_BASE_URL=https://api.abc.courses
+          tags: |
+            ${{ env.REGISTRY }}/atoms-admin-frontend:latest
+            ${{ env.REGISTRY }}/atoms-admin-frontend:${{ github.sha }}
+          cache-from: type=gha,scope=admin-frontend-prod
+          cache-to: type=gha,mode=max,scope=admin-frontend-prod
+
+  build-student-frontend:
+    name: "Student Frontend — Build Image"
+    needs: detect-changes
+    if: needs.detect-changes.outputs.student_frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DOCR
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push student frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./student-frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_BACKEND_REST_API_BASE_URL=https://api.abc.courses
+          tags: |
+            ${{ env.REGISTRY }}/atoms-student-frontend:latest
+            ${{ env.REGISTRY }}/atoms-student-frontend:${{ github.sha }}
+          cache-from: type=gha,scope=student-frontend-prod
+          cache-to: type=gha,mode=max,scope=student-frontend-prod
+
+  deploy:
+    name: Deploy to Production
+    needs: [detect-changes, build-backend, build-admin-frontend, build-student-frontend]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.any_changed == 'true' &&
+      !contains(needs.build-backend.result, 'failure') &&
+      !contains(needs.build-admin-frontend.result, 'failure') &&
+      !contains(needs.build-student-frontend.result, 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy deployment files to Production Droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_DROPLET_IP }}
+          username: deploy
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: "docker-compose.prod.yml,nginx/"
+          target: "/app"
+
+      - name: Deploy to Production Droplet
+        uses: appleboy/ssh-action@v0.1.10
+        env:
+          DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        with:
+          host: ${{ secrets.PROD_DROPLET_IP }}
+          username: deploy
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: DO_TOKEN
+          script: |
+            set -euo pipefail
+            cd /app
+
+            doctl auth init --access-token "$DO_TOKEN"
+            doctl registry login --expiry-seconds 600
+
+            PREV_BACKEND=$(docker inspect atoms-backend        --format '{{.Image}}' 2>/dev/null || true)
+            PREV_ADMIN=$(docker inspect atoms-admin-frontend   --format '{{.Image}}' 2>/dev/null || true)
+            PREV_STUDENT=$(docker inspect atoms-student-frontend --format '{{.Image}}' 2>/dev/null || true)
+            echo "Previous images:"
+            echo "  backend : ${PREV_BACKEND:-none}"
+            echo "  admin   : ${PREV_ADMIN:-none}"
+            echo "  student : ${PREV_STUDENT:-none}"
+
+            echo "=== Pulling updated images ==="
+            docker compose -f docker-compose.prod.yml pull
+
+            echo "=== Starting services ==="
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "=== Restarting nginx to pick up new container IPs ==="
+            docker restart atoms-nginx
+
+            echo "=== Waiting for backend health check (max 230s) ==="
+            HEALTHY=false
+            for i in $(seq 1 23); do
+              sleep 10
+              HEALTH_STATUS=$(docker inspect atoms-backend --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+              echo "  Attempt $i/23 — docker health status: ${HEALTH_STATUS}"
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
+                echo "✅ Backend healthy after $((i * 10))s"
+                HEALTHY=true
+                break
+              fi
+              if [ "$HEALTH_STATUS" = "unhealthy" ]; then
+                echo "❌ Container marked unhealthy — stopping wait early"
+                break
+              fi
+            done
+
+            if [ "$HEALTHY" != "true" ]; then
+              echo "❌ Backend health check failed — initiating rollback"
+              echo "=== Actuator health response ==="
+              docker exec atoms-backend wget -q -O - http://localhost:9080/actuator/health 2>/dev/null || true
+              echo "=== Backend ERROR logs ==="
+              docker logs atoms-backend 2>&1 | grep -E "ERROR|Exception|Caused by|Failed to" | tail -30
+
+              REGISTRY="registry.digitalocean.com/atoms-lms"
+              docker compose -f docker-compose.prod.yml down
+
+              ROLLED_BACK=false
+              if [ -n "$PREV_BACKEND" ]; then
+                docker tag "$PREV_BACKEND"  "$REGISTRY/atoms-backend:latest"
+                ROLLED_BACK=true
+              fi
+              if [ -n "$PREV_ADMIN" ]; then
+                docker tag "$PREV_ADMIN"    "$REGISTRY/atoms-admin-frontend:latest"
+                ROLLED_BACK=true
+              fi
+              if [ -n "$PREV_STUDENT" ]; then
+                docker tag "$PREV_STUDENT"  "$REGISTRY/atoms-student-frontend:latest"
+                ROLLED_BACK=true
+              fi
+
+              if [ "$ROLLED_BACK" = "true" ]; then
+                docker compose -f docker-compose.prod.yml up -d
+                echo "⚠️  Rollback complete — previous version restored."
+              else
+                echo "⚠️  No previous images found. Manual intervention required."
+              fi
+              exit 1
+            fi
+
+            docker compose -f docker-compose.prod.yml ps
+            echo "✅ Production deployment successful — SHA: ${{ github.sha }}"
+
+            docker image prune -af --filter "until=48h"
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "======================================="
+          echo " 🚀  Production Deployment Report"
+          echo "======================================="
+          echo "  Commit  : ${{ github.sha }}"
+          echo "  Backend : ${{ needs.detect-changes.outputs.backend == 'true' && '✅ rebuilt' || '⏭️  skipped' }}"
+          echo "  Admin   : ${{ needs.detect-changes.outputs.admin_frontend == 'true' && '✅ rebuilt' || '⏭️  skipped' }}"
+          echo "  Student : ${{ needs.detect-changes.outputs.student_frontend == 'true' && '✅ rebuilt' || '⏭️  skipped' }}"
+          echo "  Infra   : ${{ needs.detect-changes.outputs.infra == 'true' && '✅ updated' || '⏭️  skipped' }}"
+          echo "  Deploy  : ${{ job.status }}"
+          echo "  By      : ${{ github.actor }}"
+          echo "  At      : $(date -u)"
+          echo "======================================="

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <!--
+        LOCAL DEV SEED DATA ONLY
+        context="dev" — this changeset ONLY runs in local development (LIQUIBASE_CONTEXTS=dev).
+        It NEVER runs in staging or production.
+
+        RULES:
+        - Never change context to include "staging" or "prod".
+        - To reset dev data: docker compose down -v && docker compose up -d, then restart backend.
+        - All real data is created via the admin UI or direct DB operations — never via Liquibase seed.
+    -->
+    <changeSet id="seed-v1.0-initial-data" author="atoms" context="dev">
+        <sqlFile path="db/changelog/v1/seeds/initial-data.sql"
+                 relativeToChangelogFile="false"
+                 encoding="UTF-8"/>
+        <rollback>
+            <!-- Rollback: truncate all seeded tables in reverse FK order -->
+            <sql>
+                TRUNCATE TABLE certificate_issued RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE certificates RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE installments RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE course_access_controls RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE payments RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE subscriptions RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE payment_plans RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE batch_users RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE batches RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE referrals RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE test_cases RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE coding_exercises RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE user_recommendations RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE course_reviews RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE analytics_hourly RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE analytics_daily RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE system_metrics RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE notifications RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE admin_actions RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE user_notes RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE search_index RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE cohort_analytics RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE cohorts RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE user_engagement_metrics RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE videos RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE bundle_courses RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE course_bundles RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE courses RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE categories RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE profiles RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE auth_tokens RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE user_roles RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE roles RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
